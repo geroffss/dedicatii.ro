@@ -4,7 +4,7 @@ import Topbar from "../components/topbar";
 import MainComp from "../components/mainComp";
 
 const Main = () => {
-    const [selectedMenu, setSelectedMenu] = useState("Import Playlist");
+    const [selectedMenu, setSelectedMenu] = useState("Playlist");
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
@@ -17,7 +17,9 @@ const Main = () => {
                 <Topbar />
 
                 {/* Main Section */}
-                <MainComp selectedMenu={selectedMenu} />
+                <div className="flex-1 flex">
+                    <MainComp selectedMenu={selectedMenu} />
+                </div>
             </div>
         </div>
     );
