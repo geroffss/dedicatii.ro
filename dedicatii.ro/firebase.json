@@ -1,7 +1,7 @@
 {
   "hosting": {
-    "site": "dedicatiiro-86d49-c8ded",
-    "public": "public",
+    "site": "dedicatiiro-86d49",
+    "public": "build",
     "ignore": [
       "firebase.json",
       "**/.*",

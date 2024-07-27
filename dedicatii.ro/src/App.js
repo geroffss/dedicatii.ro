@@ -1,15 +1,11 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import Login from './pages/login';
+import './index.css';
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p className="text-blue-800">
-          Dedicatii.ro.
-        </p>
-      </header>
+      <Login />
     </div>
   );
 }
