@@ -34,7 +34,11 @@ const ProtectedRoute = ({ element: Component, requiredRole, ...rest }) => {
   }, []);
 
   if (loading) {
-	return <div>Loading...</div>;
+	return (
+	  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 text-white text-2xl z-50">
+		Loading...
+	  </div>
+	);
   }
 
   if (!user) {

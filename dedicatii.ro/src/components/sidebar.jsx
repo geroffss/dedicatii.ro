@@ -3,7 +3,7 @@ import React from "react";
 const Sidebar = ({ onMenuSelect }) => {
     return (
         <div className="w-full md:w-64 bg-slate-800 p-4">
-            <h2 className="text-xl font-bold mb-10 text-white">Menu</h2>
+            <h2 className="text-xl font-bold mb-10 text-white">Dedicatii.ro</h2>
             <ul>
             <li className="mb-2">
                     <button 

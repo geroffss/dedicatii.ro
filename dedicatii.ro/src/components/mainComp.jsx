@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import QRCode from "qrcode.react"; 
 import PlayerComponent from "./player";
+import CodeGen from "./codeGen";
 
 const MainComp = ({ selectedMenu }) => {
     const [isQrGenerated, setIsQrGenerated] = useState(false);
@@ -30,7 +31,7 @@ const MainComp = ({ selectedMenu }) => {
                     )}
                 </div>
             }
-            {selectedMenu === "Generate Code" && <div>Generate Code Component</div>}
+            {selectedMenu === "Generate Code" && <div><CodeGen/></div>}
             {selectedMenu === "Last Purchases" && <div>Last Purchases Component</div>}
         </div>
     );
