@@ -1,32 +1,19 @@
 import React from 'react';
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { app } from '../firebaseconfig';
 
 const Login = () => {
-  const handleGoogleLogin = async () => {
-	const auth = getAuth(app);
-	const provider = new GoogleAuthProvider();
-	try {
-	  await signInWithPopup(auth, provider);
-	  alert('Logged in successfully!');
-	} catch (error) {
-	  console.error('Error during login:', error);
-	  alert('Login failed. Please try again.');
-	}
-  };
-
   return (
-	<div className="flex items-center justify-center min-h-screen bg-gray-100">
-	  <div className="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full">
-		<h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-		<button
-		  onClick={handleGoogleLogin}
-		  className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200"
-		>
-		  Sign in with Google
-		</button>
-	  </div>
-	</div>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-400 to-purple-500">
+      <div className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg p-8 rounded-lg shadow-lg max-w-sm w-full">
+        <h1 className="text-4xl font-bold mb-2 text-center text-white">dedicatii.ro</h1>
+        <h2 className="text-xl font-semibold mb-6 text-center text-gray-200">no dedicatie no porsche</h2>
+        <button
+          className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition duration-200"
+          onClick={() => window.location.href = '/main'}
+        >
+          Sign in with Google
+        </button>
+      </div>
+    </div>
   );
 };
 
