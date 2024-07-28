@@ -1,19 +1,37 @@
 import React from 'react';
 import { auth, provider } from '../firebaseconfig'; // Adjust the path as necessary
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { getFirestore, doc, setDoc, getDoc} from "firebase/firestore";
 
 const Login = () => {
   const handleGoogleSignIn = async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      const token = credential.accessToken;
-      const user = result.user;
-      console.log('User Info:', user);
-      window.location.href = '/main';
-    } catch (error) {
-      console.error('Error during sign-in:', error);
-    }
+      try {
+          const result = await signInWithPopup(auth, provider);
+          const credential = GoogleAuthProvider.credentialFromResult(result);
+          const token = credential.accessToken;
+          const user = result.user;
+          console.log('User Info:', user);
+  
+          const db = getFirestore();
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+  
+          if (!userDoc.exists()) {
+              await setDoc(userDocRef, {
+                  role: 'charlie'
+              });
+              window.location.href = '/charlie';
+          } else {
+              const userData = userDoc.data();
+              if (userData.role === 'charlie') {
+                  window.location.href = '/charlie';
+              } else if (userData.role === 'nova') {
+                  window.location.href = '/main';
+              }
+          }
+      } catch (error) {
+          console.error('Error during sign-in:', error);
+      }
   };
 
   return (
