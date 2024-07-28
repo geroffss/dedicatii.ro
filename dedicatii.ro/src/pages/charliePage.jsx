@@ -82,6 +82,9 @@ const CharliePage = () => {
                     onError={handleQRError}
                     onScan={handleQRScan}
                     style={{ width: '100%' }}
+                    constraints={{
+                        video: { facingMode: { exact: "environment" } }
+                    }}
                 />
                 {qrResult && <p className="mt-4">Scanned Result: {qrResult}</p>}
                 <button 
