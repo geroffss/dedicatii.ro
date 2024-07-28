@@ -7,6 +7,7 @@ const CharliePage = () => {
     const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
     const [isQRModalOpen, setIsQRModalOpen] = useState(false);
     const [qrResult, setQrResult] = useState('');
+    const [cameraMode, setCameraMode] = useState('environment'); // 'environment' for rear, 'user' for front
 
     const handleRedeemCode = () => {
         setIsRedeemModalOpen(true);
@@ -18,15 +19,16 @@ const CharliePage = () => {
 
     const handleQRScan = (data) => {
         if (data) {
-            setQrResult(data.text);
-            setIsQRModalOpen(false);
+            setQrResult(data);
         }
     };
 
     const handleQRError = (error) => {
         console.error(error);
     };
-
+    const toggleCameraMode = () => {
+        setCameraMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
+    };
     return (
         <div className=" text-center">
             <CharlieTopBar />
@@ -68,7 +70,6 @@ const CharliePage = () => {
                     Submit
                 </button>
             </Modal>
-
             <Modal
                 isOpen={isQRModalOpen}
                 onRequestClose={() => setIsQRModalOpen(false)}
@@ -83,10 +84,16 @@ const CharliePage = () => {
                     onScan={handleQRScan}
                     style={{ width: '100%' }}
                     constraints={{
-                        video: { facingMode: { exact: "environment" } }
+                        video: { facingMode: { exact: cameraMode } }
                     }}
                 />
                 {qrResult && <p className="mt-4">Scanned Result: {qrResult}</p>}
+                <button 
+                    className="bg-blue-500 text-white py-2 px-4 rounded mt-4"
+                    onClick={toggleCameraMode}
+                >
+                    Switch Camera
+                </button>
                 <button 
                     className="bg-red-500 text-white py-2 px-4 rounded mt-4"
                     onClick={() => setIsQRModalOpen(false)}
