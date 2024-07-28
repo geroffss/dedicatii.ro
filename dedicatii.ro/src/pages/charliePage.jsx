@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import CharlieTopBar from '../components/charlieTopBar';
 import Modal from 'react-modal';
 import QrScanner from 'react-qr-scanner';
+import { auth, provider, app } from '../firebaseconfig';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 const CharliePage = () => {
     const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
     const [isQRModalOpen, setIsQRModalOpen] = useState(false);
     const [qrResult, setQrResult] = useState('');
-    const [cameraMode, setCameraMode] = useState('environment'); // 'environment' for rear, 'user' for front
+    const [cameraMode, setCameraMode] = useState('environment');
+    const [redeemCode, setRedeemCode] = useState('');
 
     const handleRedeemCode = () => {
         setIsRedeemModalOpen(true);
@@ -17,17 +20,32 @@ const CharliePage = () => {
         setIsQRModalOpen(true);
     };
 
-    const handleQRScan = (data) => {
-        if (data) {
-            setQrResult(data);
-        }
-    };
+        const handleQRScan = (data) => {
+            if (data) {
+                setQrResult(data.text);
+                setIsQRModalOpen(false);
+            }
+        };
 
     const handleQRError = (error) => {
         console.error(error);
     };
     const toggleCameraMode = () => {
         setCameraMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
+    };
+
+    const handleRedeemSubmit = async () => {
+        const functions = getFunctions(app, 'europe-central2'); // Adjust the region if necessary
+        const redeemCodeFunction = httpsCallable(functions, 'redeemCode');
+
+        try {
+            const result = await redeemCodeFunction({ code: redeemCode });
+            console.log('Code redeemed successfully:', result.data);
+        } catch (error) {
+            console.error('Error redeeming code:', error);
+        }
+
+        setIsRedeemModalOpen(false);
     };
     return (
         <div className=" text-center">
@@ -62,10 +80,12 @@ const CharliePage = () => {
                     type="text" 
                     placeholder="Enter your code" 
                     className="border p-2 w-full mb-4"
+                    value={redeemCode}
+                    onChange={(e) => setRedeemCode(e.target.value)}
                 />
                 <button 
                     className="bg-blue-500 text-white py-2 px-4 rounded"
-                    onClick={() => setIsRedeemModalOpen(false)}
+                    onClick={handleRedeemSubmit}
                 >
                     Submit
                 </button>

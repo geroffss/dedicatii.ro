@@ -2,14 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBackward, faPlay, faPause, faForward, faPlus } from '@fortawesome/free-solid-svg-icons';
-
+import { auth, database } from '../firebaseconfig';
+import { ref, get } from "firebase/database";
 
 const API_KEY = 'AIzaSyAVaymp99OZmRWQ8ddDfGURCuvK__Qk-yc';
-const PLAYLIST_ID = 'PLSptvpnLGQTiLWvdonMb7PE3zbdNh4wua';
-
 
 const TEMP_SONG = {
-    
   snippet: {
     title: 'Temporary Song Title',
     channelTitle: 'Temporary Artist',
@@ -29,34 +27,61 @@ const PlayerComponent = () => {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [tempSongActive, setTempSongActive] = useState(false);
+  const [playlistID, setPlaylistID] = useState(null);
   const playerRef = useRef(null);
 
   useEffect(() => {
-    const fetchPlaylist = async () => {
-      try {
-        const response = await axios.get(`https://www.googleapis.com/youtube/v3/playlistItems`, {
-          params: {
-            part: 'snippet',
-            maxResults: 10,
-            playlistId: PLAYLIST_ID,
-            key: API_KEY,
-          },
-        });
-        setPlaylist(response.data.items);
-      } catch (error) {
-        console.error('Error fetching playlist', error);
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const uid = user.uid;
+        console.log('User authenticated:', user.uid);
+        const playlistRef = ref(database, `nova/${uid}/playlistID`);
+        console.log('Playlist Ref:', playlistRef);
+        try {
+          const snapshot = await get(playlistRef);
+          if (snapshot.exists()) {
+            setPlaylistID(snapshot.val());
+            console.log('Playlist ID:', snapshot.val());
+          } else {
+            console.error('Playlist ID not found in database');
+          }
+        } catch (error) {
+          console.error('Error fetching playlist ID', error);
+        }
+      } else {
+        console.error('User not authenticated');
       }
-    };
+    });
 
-    fetchPlaylist();
+    return () => unsubscribe();
+  }, []);
 
-    // Load YouTube IFrame Player API
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  useEffect(() => {
+    if (playlistID) {
+      const fetchPlaylist = async () => {
+        try {
+          const response = await axios.get(`https://www.googleapis.com/youtube/v3/playlistItems`, {
+            params: {
+              part: 'snippet',
+              maxResults: 10,
+              playlistId: playlistID,
+              key: API_KEY,
+            },
+          });
+          setPlaylist(response.data.items);
+        } catch (error) {
+          console.error('Error fetching playlist', error);
+        }
+      };
 
+      fetchPlaylist();
+    }
+  }, [playlistID]);
+
+  useEffect(() => {
+    // Initialize YouTube Player
     window.onYouTubeIframeAPIReady = () => {
+      console.log('YouTube IFrame API is ready');
       playerRef.current = new window.YT.Player('player', {
         events: {
           onReady: onPlayerReady,
@@ -64,15 +89,23 @@ const PlayerComponent = () => {
         },
       });
     };
+
+    // Load YouTube IFrame Player API
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
   }, []);
 
   const onPlayerReady = (event) => {
+    console.log('Player is ready');
     if (playlist.length > 0) {
       event.target.loadVideoById(playlist[currentVideoIndex].snippet.resourceId.videoId);
     }
   };
 
   const onPlayerStateChange = (event) => {
+    console.log('Player state changed:', event.data);
     if (event.data === window.YT.PlayerState.PLAYING) {
       setIsPlaying(true);
     } else if (event.data === window.YT.PlayerState.ENDED) {
@@ -132,7 +165,7 @@ const PlayerComponent = () => {
     : (playlist.length > 0 ? playlist[currentVideoIndex].snippet.channelTitle : 'Artist Placeholder');
 
   return (
-    <div className="player p-6 bg-gray-800 text-white rounded-lg shadow-lg max-h-screen">
+    <div className="player p-6 bg-gray-900 text-white shadow-lg max-h-screen">
       <h2 className="text-3xl font-bold mb-6 text-center">Now Playing</h2>
       <div className="flex flex-col md:flex-row">
         <div className="flex-1 flex flex-col items-center mb-6 md:mb-0">

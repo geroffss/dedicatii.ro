@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import QRCode from "qrcode.react"; 
-import PlayerComponent from "./player";
 import CodeGen from "./codeGen";
+import ImportComp from "./importPlaylist";
 
 const MainComp = ({ selectedMenu }) => {
     const [isQrGenerated, setIsQrGenerated] = useState(false);
@@ -11,9 +11,8 @@ const MainComp = ({ selectedMenu }) => {
     };
 
     return (
-        <div className="p-4 flex-1">
-            {selectedMenu === "Playlist" && <div><PlayerComponent /></div>}
-            {selectedMenu === "Import Playlist" && <div>Import Playlist Component</div>}
+        <div className="">
+            {selectedMenu === "Import Playlist" && <div><ImportComp/></div>}
             {selectedMenu === "QR Code" &&
                 <div>
                     {!isQrGenerated && (

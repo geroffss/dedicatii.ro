@@ -5,14 +5,6 @@ const Sidebar = ({ onMenuSelect }) => {
         <div className="w-full md:w-64 bg-slate-800 p-4">
             <h2 className="text-xl font-bold mb-10 text-white">Dedicatii.ro</h2>
             <ul>
-            <li className="mb-2">
-                    <button 
-                        className="text-white hover:text-gray-900 focus:outline-none"
-                        onClick={() => onMenuSelect("Playlist")}
-                    >
-                        Playlist
-                    </button>
-                </li>
                 <li className="mb-2">
                     <button 
                         className="text-white hover:text-gray-900 focus:outline-none"

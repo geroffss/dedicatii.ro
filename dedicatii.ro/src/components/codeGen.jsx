@@ -83,7 +83,7 @@ const CodeGen = () => {
     };
 
     return (
-        <div className="code-gen-container p-4 bg-gray-800 text-white rounded-lg shadow-lg max-w-md mx-auto">
+        <div className="code-gen-container bg-gray-900 text-white p-6 shadow-lg">
             {!user ? (
                 <button 
                     onClick={signInWithGoogle} 
