@@ -9,25 +9,25 @@ const Main = () => {
     const [selectedMenu, setSelectedMenu] = useState("Import Playlist");
 
     return (
-        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
-            {/* Sidebar */}
-            <Sidebar onMenuSelect={setSelectedMenu} />
+        <div className="flex flex-col min-h-screen bg-gray-100">
+            {/* Topbar */}
+            <Topbar className="w-full" />
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col">
-                {/* Topbar */}
-                <Topbar />
+            <div className="flex flex-1 flex-col md:flex-row">
+                {/* Sidebar */}
+                <Sidebar onMenuSelect={setSelectedMenu} className="mt-10" />
 
-                {/* Main Section */}
-                <div className="flex-1 flex-col">
-                    <PlayerComponent />
-                    <MainComp selectedMenu={selectedMenu} />
+                {/* Main Content */}
+                <div className="flex-1 flex flex-col">
+                    {/* Main Section */}
+                    <div className="flex flex-col gap-5 h-fit bg-gray-900">
+                        <PlayerComponent />
+                        <MainComp selectedMenu={selectedMenu} />
+                    </div>
+                     
+                    {/* Botbar */}
                 </div>
-                 
-                {/* Botbar */}
-                <Botbar />
             </div>
-               
         </div>
     );
 }

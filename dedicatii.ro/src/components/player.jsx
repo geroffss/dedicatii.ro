@@ -63,6 +63,10 @@ const PlayerComponent = () => {
   }, [playlistID]);
 
   const handlePlayPause = () => {
+    if (!isPlaying && playerRef.current) {
+      // Unmute and play
+      playerRef.current.getInternalPlayer().unMute();
+    }
     setIsPlaying(!isPlaying);
   };
 
@@ -107,7 +111,7 @@ const PlayerComponent = () => {
   const playerRef = useRef(null);
 
   return (
-    <div className="player p-6 bg-gray-900 text-white shadow-lg max-h-screen">
+    <div className="player p-6 bg-gray-900 text-white shadow-lg">
       <h2 className="text-3xl font-bold mb-6 text-center">Now Playing</h2>
       <div className="flex flex-col md:flex-row">
         <div className="flex-1 flex flex-col items-center mb-6 md:mb-0">
@@ -134,6 +138,19 @@ const PlayerComponent = () => {
               </li>
             ))}
           </ul>
+          <div className="time-controls mt-6 flex items-center justify-center">
+        <span className="text-white mr-3">{Math.floor(currentTime / 60)}:{Math.floor(currentTime % 60).toString().padStart(2, '0')}</span>
+        <input
+          type="range"
+          min="0"
+          max={duration || 0}
+          step="0.1"
+          value={currentTime}
+          onChange={handleSeek}
+          className="w-full"
+        />
+        <span className="text-white ml-3">{Math.floor(duration / 60)}:{Math.floor(duration % 60).toString().padStart(2, '0')}</span>
+      </div>
         </div>
       </div>
       <div className="player-controls flex justify-center mt-6">
@@ -147,37 +164,31 @@ const PlayerComponent = () => {
           <FontAwesomeIcon icon={faForward} />
         </button>
       </div>
-      <div className="time-controls mt-6 flex items-center justify-center">
-        <span className="text-white mr-3">{Math.floor(currentTime / 60)}:{Math.floor(currentTime % 60).toString().padStart(2, '0')}</span>
-        <input
-          type="range"
-          min="0"
-          max={duration || 0}
-          step="0.1"
-          value={currentTime}
-          onChange={handleSeek}
-          className="w-full"
-        />
-        <span className="text-white ml-3">{Math.floor(duration / 60)}:{Math.floor(duration % 60).toString().padStart(2, '0')}</span>
-      </div>
+     
       <ReactPlayer
         ref={playerRef}
         url={`https://www.youtube.com/watch?v=${currentVideo}`}
         playing={isPlaying}
         onProgress={handleProgress}
         onDuration={handleDuration}
+        onEnded={handleNext} // Add this line to handle video end
         width="0"
         height="0"
-        muted={false}
+        autoPlay={true}
         config={{
           youtube: {
             playerVars: {
-              autoplay: 1, // Enable autoplay
+              autoplay: 1,
               controls: 0,
               showinfo: 0,
               modestbranding: 1,
             },
           },
+        }}
+        onStart={() => {
+          if (playerRef.current) {
+            playerRef.current.getInternalPlayer().unMute();
+          }
         }}
       />
     </div>
