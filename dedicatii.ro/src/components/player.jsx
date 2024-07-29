@@ -1,47 +1,31 @@
-import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import React, { useState, useEffect, useRef } from 'react';
+import ReactPlayer from 'react-player/youtube';
+import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBackward, faPlay, faPause, faForward, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faBackward, faPlay, faPause, faForward } from '@fortawesome/free-solid-svg-icons';
 import { auth, database } from '../firebaseconfig';
-import { ref, get } from "firebase/database";
+import { ref, get } from 'firebase/database';
 
 const API_KEY = 'AIzaSyAVaymp99OZmRWQ8ddDfGURCuvK__Qk-yc';
-
-const TEMP_SONG = {
-  snippet: {
-    title: 'Temporary Song Title',
-    channelTitle: 'Temporary Artist',
-    resourceId: {
-      videoId: 'MAeydruvY9E'
-    },
-    thumbnails: {
-      default: {
-        url: 'https://via.placeholder.com/150'
-      }
-    }
-  }
-};
 
 const PlayerComponent = () => {
   const [playlist, setPlaylist] = useState([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [tempSongActive, setTempSongActive] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [playlistID, setPlaylistID] = useState(null);
-  const playerRef = useRef(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         const uid = user.uid;
-        console.log('User authenticated:', user.uid);
         const playlistRef = ref(database, `nova/${uid}/playlistID`);
-        console.log('Playlist Ref:', playlistRef);
         try {
           const snapshot = await get(playlistRef);
           if (snapshot.exists()) {
             setPlaylistID(snapshot.val());
-            console.log('Playlist ID:', snapshot.val());
+            console.log('Playlist ID fetched from database');
           } else {
             console.error('Playlist ID not found in database');
           }
@@ -60,7 +44,7 @@ const PlayerComponent = () => {
     if (playlistID) {
       const fetchPlaylist = async () => {
         try {
-          const response = await axios.get(`https://www.googleapis.com/youtube/v3/playlistItems`, {
+          const response = await axios.get('https://www.googleapis.com/youtube/v3/playlistItems', {
             params: {
               part: 'snippet',
               maxResults: 10,
@@ -78,100 +62,58 @@ const PlayerComponent = () => {
     }
   }, [playlistID]);
 
-  useEffect(() => {
-    // Initialize YouTube Player
-    window.onYouTubeIframeAPIReady = () => {
-      console.log('YouTube IFrame API is ready');
-      playerRef.current = new window.YT.Player('player', {
-        events: {
-          onReady: onPlayerReady,
-          onStateChange: onPlayerStateChange
-        },
-      });
-    };
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
 
-    // Load YouTube IFrame Player API
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-  }, []);
-
-  const onPlayerReady = (event) => {
-    console.log('Player is ready');
+  const handlePrev = () => {
     if (playlist.length > 0) {
-      event.target.loadVideoById(playlist[currentVideoIndex].snippet.resourceId.videoId);
+      let prevIndex = (currentVideoIndex - 1 + playlist.length) % playlist.length;
+      setCurrentVideoIndex(prevIndex);
+      console.log('Previous video', playlist[prevIndex].snippet.title);
     }
   };
 
-  const onPlayerStateChange = (event) => {
-    console.log('Player state changed:', event.data);
-    if (event.data === window.YT.PlayerState.PLAYING) {
-      setIsPlaying(true);
-    } else if (event.data === window.YT.PlayerState.ENDED) {
-      setIsPlaying(false);
-      if (tempSongActive) {
-        setTempSongActive(false);
-        nextVideo();
-      }
-    } else {
-      setIsPlaying(false);
+  const handleNext = () => {
+    if (playlist.length > 0) {
+      let nextIndex = (currentVideoIndex + 1) % playlist.length;
+      setCurrentVideoIndex(nextIndex);
+      console.log('Next video', playlist[nextIndex].snippet.title);
     }
   };
 
-  const playVideo = () => {
-    playerRef.current.playVideo();
+  const handleProgress = (state) => {
+    setCurrentTime(state.playedSeconds);
+    setDuration(state.duration || duration); 
   };
 
-  const pauseVideo = () => {
-    playerRef.current.pauseVideo();
+  const handleDuration = (duration) => {
+    setDuration(duration); 
   };
 
-  const nextVideo = () => {
-    let nextIndex = (currentVideoIndex + 1) % playlist.length;
-    if (tempSongActive) {
-      setTempSongActive(false);
-      nextIndex = currentVideoIndex;
+  const handleSeek = (event) => {
+    const newTime = parseFloat(event.target.value);
+    setCurrentTime(newTime);
+    if (playerRef.current) {
+      playerRef.current.seekTo(newTime);
     }
-    setCurrentVideoIndex(nextIndex);
-    playerRef.current.loadVideoById(playlist[nextIndex].snippet.resourceId.videoId);
   };
 
-  const prevVideo = () => {
-    let prevIndex = (currentVideoIndex - 1 + playlist.length) % playlist.length;
-    if (tempSongActive) {
-      setTempSongActive(false);
-      prevIndex = currentVideoIndex;
-    }
-    setCurrentVideoIndex(prevIndex);
-    playerRef.current.loadVideoById(playlist[prevIndex].snippet.resourceId.videoId);
-  };
+  const currentVideo = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.resourceId?.videoId : '';
+  const currentThumbnail = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.thumbnails?.default?.url : 'https://via.placeholder.com/150';
+  const currentTitle = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.title : 'Title Placeholder';
+  const currentArtist = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.channelTitle : 'Artist Placeholder';
 
-  const addTempSong = () => {
-    setTempSongActive(true);
-    playerRef.current.loadVideoById(TEMP_SONG.snippet.resourceId.videoId);
-  };
-
-  const currentThumbnail = tempSongActive 
-    ? TEMP_SONG.snippet.thumbnails.default.url 
-    : (playlist.length > 0 ? playlist[currentVideoIndex].snippet.thumbnails.default.url : 'https://via.placeholder.com/150');
-
-  const currentTitle = tempSongActive 
-    ? TEMP_SONG.snippet.title 
-    : (playlist.length > 0 ? playlist[currentVideoIndex].snippet.title : 'Title Placeholder');
-
-  const currentArtist = tempSongActive 
-    ? TEMP_SONG.snippet.channelTitle 
-    : (playlist.length > 0 ? playlist[currentVideoIndex].snippet.channelTitle : 'Artist Placeholder');
+  const playerRef = useRef(null);
 
   return (
     <div className="player p-6 bg-gray-900 text-white shadow-lg max-h-screen">
       <h2 className="text-3xl font-bold mb-6 text-center">Now Playing</h2>
       <div className="flex flex-col md:flex-row">
         <div className="flex-1 flex flex-col items-center mb-6 md:mb-0">
-          <img 
-            src={currentThumbnail} 
-            alt="Album Art" 
+          <img
+            src={currentThumbnail}
+            alt="Album Art"
             className="w-48 h-48 mb-4 rounded-lg shadow-md"
           />
           <div className="text-center">
@@ -181,17 +123,12 @@ const PlayerComponent = () => {
         </div>
         <div className="flex-1 md:ml-6">
           <h3 className="text-2xl font-semibold mb-4">Playlist</h3>
-          <ul className="playlist bg-gray-700 p-4 rounded-lg h-48 overflow-y-auto">
+          <ul className="playlist bg-gray-700 p-4 rounded-lg h-48 overflow-y-auto w-fit">
             {playlist.map((item, index) => (
-              <li 
-                key={index} 
-                className="mb-2 cursor-pointer hover:bg-gray-600 p-2 rounded" 
-                onClick={() => {
-                  setCurrentVideoIndex(index);
-                  playerRef.current.loadVideoById(item.snippet.resourceId.videoId);
-                  setIsPlaying(true);
-                  setTempSongActive(false);
-                }}
+              <li
+                key={index}
+                className={`mb-2 cursor-pointer hover:bg-gray-600 p-2 rounded ${index === currentVideoIndex ? 'bg-gray-800' : ''}`}
+                onClick={() => setCurrentVideoIndex(index)}
               >
                 {item.snippet.title}
               </li>
@@ -200,26 +137,49 @@ const PlayerComponent = () => {
         </div>
       </div>
       <div className="player-controls flex justify-center mt-6">
-        <button className="prev text-white p-3 mx-3 rounded-full" onClick={prevVideo}>
+        <button className="prev text-white p-3 mx-3 rounded-full" onClick={handlePrev}>
           <FontAwesomeIcon icon={faBackward} />
         </button>
-        {isPlaying ? (
-          <button className="pause text-white p-3 mx-3 rounded-full" onClick={pauseVideo}>
-            <FontAwesomeIcon icon={faPause} />
-          </button>
-        ) : (
-          <button className="play text-white p-3 mx-3 rounded-full " onClick={playVideo}>
-            <FontAwesomeIcon icon={faPlay} />
-          </button>
-        )}
-        <button className="next text-white p-3 mx-3 rounded-full " onClick={nextVideo}>
+        <button className={`playpause text-white p-3 mx-3 rounded-full ${isPlaying ? 'pause' : 'play'}`} onClick={handlePlayPause}>
+          <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
+        </button>
+        <button className="next text-white p-3 mx-3 rounded-full" onClick={handleNext}>
           <FontAwesomeIcon icon={faForward} />
         </button>
-        <button className="add-temp-song text-white p-3 mx-3 rounded-full " onClick={addTempSong}>
-          <FontAwesomeIcon icon={faPlus} />
-        </button>
       </div>
-      <div id="player" style={{ display: 'none' }}></div>
+      <div className="time-controls mt-6 flex items-center justify-center">
+        <span className="text-white mr-3">{Math.floor(currentTime / 60)}:{Math.floor(currentTime % 60).toString().padStart(2, '0')}</span>
+        <input
+          type="range"
+          min="0"
+          max={duration || 0}
+          step="0.1"
+          value={currentTime}
+          onChange={handleSeek}
+          className="w-full"
+        />
+        <span className="text-white ml-3">{Math.floor(duration / 60)}:{Math.floor(duration % 60).toString().padStart(2, '0')}</span>
+      </div>
+      <ReactPlayer
+        ref={playerRef}
+        url={`https://www.youtube.com/watch?v=${currentVideo}`}
+        playing={isPlaying}
+        onProgress={handleProgress}
+        onDuration={handleDuration}
+        width="0"
+        height="0"
+        muted={false}
+        config={{
+          youtube: {
+            playerVars: {
+              autoplay: 1, // Enable autoplay
+              controls: 0,
+              showinfo: 0,
+              modestbranding: 1,
+            },
+          },
+        }}
+      />
     </div>
   );
 };
