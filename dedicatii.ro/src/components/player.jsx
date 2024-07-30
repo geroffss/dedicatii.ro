@@ -8,13 +8,15 @@ import { ref, get } from 'firebase/database';
 
 const API_KEY = 'AIzaSyAVaymp99OZmRWQ8ddDfGURCuvK__Qk-yc';
 
-const PlayerComponent = () => {
+const PlayerComponent = ({ onSongChange }) => {
   const [playlist, setPlaylist] = useState([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [playlistID, setPlaylistID] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+
+  const playerRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -62,9 +64,15 @@ const PlayerComponent = () => {
     }
   }, [playlistID]);
 
+  useEffect(() => {
+    if (playlist.length > 0 && onSongChange) {
+      const currentVideoId = playlist[currentVideoIndex]?.snippet?.resourceId?.videoId;
+      onSongChange(playlistID, currentVideoId);
+    }
+  }, [currentVideoIndex, playlist, playlistID, onSongChange]);
+
   const handlePlayPause = () => {
     if (!isPlaying && playerRef.current) {
-      // Unmute and play
       playerRef.current.getInternalPlayer().unMute();
     }
     setIsPlaying(!isPlaying);
@@ -108,8 +116,6 @@ const PlayerComponent = () => {
   const currentTitle = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.title : 'Title Placeholder';
   const currentArtist = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.channelTitle : 'Artist Placeholder';
 
-  const playerRef = useRef(null);
-
   return (
     <div className="player p-6 bg-gray-900 text-white shadow-lg">
       <h2 className="text-3xl font-bold mb-6 text-center">Now Playing</h2>
@@ -139,18 +145,22 @@ const PlayerComponent = () => {
             ))}
           </ul>
           <div className="time-controls mt-6 flex items-center justify-center">
-        <span className="text-white mr-3">{Math.floor(currentTime / 60)}:{Math.floor(currentTime % 60).toString().padStart(2, '0')}</span>
-        <input
-          type="range"
-          min="0"
-          max={duration || 0}
-          step="0.1"
-          value={currentTime}
-          onChange={handleSeek}
-          className="w-full"
-        />
-        <span className="text-white ml-3">{Math.floor(duration / 60)}:{Math.floor(duration % 60).toString().padStart(2, '0')}</span>
-      </div>
+            <span className="text-white mr-3">
+              {`${Math.floor(currentTime / 60)}:${Math.floor(currentTime % 60).toString().padStart(2, '0')}`}
+            </span>
+            <input
+              type="range"
+              min="0"
+              max={duration || 0}
+              step="0.1"
+              value={currentTime}
+              onChange={handleSeek}
+              className="w-full"
+            />
+            <span className="text-white ml-3">
+              {`${Math.floor(duration / 60)}:${Math.floor(duration % 60).toString().padStart(2, '0')}`}
+            </span>
+          </div>
         </div>
       </div>
       <div className="player-controls flex justify-center mt-6">
@@ -171,7 +181,7 @@ const PlayerComponent = () => {
         playing={isPlaying}
         onProgress={handleProgress}
         onDuration={handleDuration}
-        onEnded={handleNext} // Add this line to handle video end
+        onEnded={handleNext} // Handle video end
         width="0"
         height="0"
         autoPlay={true}
