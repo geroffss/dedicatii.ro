@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import CodeGen from "./codeGen";
 import ImportComp from "./importPlaylist";
 

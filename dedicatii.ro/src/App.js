@@ -13,7 +13,7 @@ function App() {
         <Routes>
           <Route path="/main" element={<ProtectedRoute element={Main} requiredRole="nova" />} />
           <Route path="/" element={<Login />} />
-          <Route path="/charlie" element={<ProtectedRoute element={CharliePage} requiredRole="charlie" />} />
+          <Route path="/charlie/*" element={<ProtectedRoute element={CharliePage} requiredRole="charlie" />} />
         </Routes>
       </div>
     </Router>

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import Sidebar from "../components/sidebar";
 import Topbar from "../components/topbar";
 import MainComp from "../components/mainComp";
-import Botbar from "../components/botbar";
 import PlayerComponent from "../components/player";
 import QrCode from "../components/qrCode";
 

@@ -1,11 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import QRCode from "qrcode.react";
+import { getAuth } from "firebase/auth";
+import { app } from "../firebaseconfig";
 
 const QrCode = ({ playlistId, currentSong }) => {
+  const [uid, setUid] = useState(null);
+
+  useEffect(() => {
+    const auth = getAuth(app);
+    const user = auth.currentUser;
+    if (user) {
+      setUid(user.uid);
+    }
+  }, []);
+
   const generateQRCodeValue = () => {
-    if (!playlistId || !currentSong) return '';
+    if (!playlistId || !currentSong || !uid) return '';
     const currentDomain = window.location.origin;
-    return `${currentDomain}/charlie/${playlistId}/${currentSong}`;
+    return `${currentDomain}/charlie/${playlistId}/${uid}`;
   };
 
   const url = generateQRCodeValue();

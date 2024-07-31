@@ -4,7 +4,7 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBackward, faPlay, faPause, faForward } from '@fortawesome/free-solid-svg-icons';
 import { auth, database } from '../firebaseconfig';
-import { ref, get } from 'firebase/database';
+import { ref, get, set, remove } from 'firebase/database';
 
 const API_KEY = 'AIzaSyAVaymp99OZmRWQ8ddDfGURCuvK__Qk-yc';
 
@@ -15,7 +15,7 @@ const PlayerComponent = ({ onSongChange }) => {
   const [playlistID, setPlaylistID] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-
+  const [currentVideoId, setCurrentVideoId] = useState(null);
   const playerRef = useRef(null);
 
   useEffect(() => {
@@ -67,9 +67,51 @@ const PlayerComponent = ({ onSongChange }) => {
   useEffect(() => {
     if (playlist.length > 0 && onSongChange) {
       const currentVideoId = playlist[currentVideoIndex]?.snippet?.resourceId?.videoId;
+      const uid = auth.currentUser.uid;
+
+      // Save current song to the database
+      const currentSongRef = ref(database, `nova/${uid}/currentSong`);
+      set(currentSongRef, currentVideoId);
+
       onSongChange(playlistID, currentVideoId);
+      setCurrentVideoId(currentVideoId); // Update the currentVideoId state
     }
   }, [currentVideoIndex, playlist, playlistID, onSongChange]);
+
+  // Function to play next song or next in the playlist
+  const playNextOrNextInPlaylist = async () => {
+    if (auth.currentUser) {
+      const uid = auth.currentUser.uid;
+      const nextSongRef = ref(database, `nova/${uid}/nextSong`);
+
+      try {
+        const nextSongSnapshot = await get(nextSongRef);
+        let nextSongId = null;
+
+        if (nextSongSnapshot.exists()) {
+          nextSongId = nextSongSnapshot.val();
+          console.log(`Next song ID from database: ${nextSongId}`);
+          await remove(nextSongRef); // Remove the nextSong entry after getting it
+        } else {
+          // If nextSong doesn't exist, move to the next song in the playlist
+          let nextIndex = (currentVideoIndex + 1) % playlist.length;
+          nextSongId = playlist[nextIndex]?.snippet?.resourceId?.videoId;
+          setCurrentVideoIndex(nextIndex);
+          console.log(`Playing next song in playlist: ${playlist[nextIndex]?.snippet?.title}`);
+        }
+
+        if (nextSongId) {
+          setCurrentVideoId(nextSongId); // Update the currentVideoId to play the next song
+          const currentSongRef = ref(database, `nova/${uid}/currentSong`);
+          await set(currentSongRef, nextSongId);
+        } else {
+          console.error('No next song ID available to set as current song.');
+        }
+      } catch (error) {
+        console.error('Error accessing nextSong from database', error);
+      }
+    }
+  };
 
   const handlePlayPause = () => {
     if (!isPlaying && playerRef.current) {
@@ -87,11 +129,7 @@ const PlayerComponent = ({ onSongChange }) => {
   };
 
   const handleNext = () => {
-    if (playlist.length > 0) {
-      let nextIndex = (currentVideoIndex + 1) % playlist.length;
-      setCurrentVideoIndex(nextIndex);
-      console.log('Next video', playlist[nextIndex].snippet.title);
-    }
+    playNextOrNextInPlaylist();
   };
 
   const handleProgress = (state) => {
@@ -111,10 +149,8 @@ const PlayerComponent = ({ onSongChange }) => {
     }
   };
 
-  const currentVideo = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.resourceId?.videoId : '';
   const currentThumbnail = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.thumbnails?.default?.url : 'https://via.placeholder.com/150';
   const currentTitle = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.title : 'Title Placeholder';
-  const currentArtist = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.channelTitle : 'Artist Placeholder';
 
   return (
     <div className="player p-6 bg-gray-900 text-white shadow-lg">
@@ -128,7 +164,6 @@ const PlayerComponent = ({ onSongChange }) => {
           />
           <div className="text-center">
             <h3 className="text-2xl font-semibold">{currentTitle}</h3>
-            <p className="text-lg text-gray-300">{currentArtist}</p>
           </div>
         </div>
         <div className="flex-1 md:ml-6">
@@ -174,17 +209,15 @@ const PlayerComponent = ({ onSongChange }) => {
           <FontAwesomeIcon icon={faForward} />
         </button>
       </div>
-     
       <ReactPlayer
         ref={playerRef}
-        url={`https://www.youtube.com/watch?v=${currentVideo}`}
+        url={currentVideoId ? `https://www.youtube.com/watch?v=${currentVideoId}` : `https://www.youtube.com/watch?v=${currentVideoId || ''}`}
         playing={isPlaying}
         onProgress={handleProgress}
         onDuration={handleDuration}
-        onEnded={handleNext} // Handle video end
+        onEnded={playNextOrNextInPlaylist}
         width="0"
         height="0"
-        autoPlay={true}
         config={{
           youtube: {
             playerVars: {
