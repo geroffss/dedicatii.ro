@@ -1,9 +1,9 @@
 import React from "react";
+import Logout from "./logout";
 
 const Sidebar = ({ onMenuSelect }) => {
     return (
         <div className="w-full md:w-64 bg-slate-800 p-4">
-            <h2 className="text-xl font-bold mb-10 text-white">Dedicatii.ro</h2>
             <ul>
                 <li className="mb-2">
                     <button 
@@ -45,6 +45,10 @@ const Sidebar = ({ onMenuSelect }) => {
                     >
                         Possible Queue
                     </button>
+                </li>
+                <li className="mb-2 flex gap-2 md:hidden text-white">
+                    <Logout/>
+                    <p>Logout</p>
                 </li>
             </ul>
         </div>

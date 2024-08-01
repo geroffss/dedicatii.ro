@@ -51,7 +51,7 @@ const PlayerComponent = ({ onSongChange }) => {
           const response = await axios.get('https://www.googleapis.com/youtube/v3/playlistItems', {
             params: {
               part: 'snippet',
-              maxResults: 10,
+              maxResults: 500,
               playlistId: playlistID,
               key: API_KEY,
             },

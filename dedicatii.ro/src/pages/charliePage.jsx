@@ -185,7 +185,6 @@ const CharliePage = () => {
     return (
         <div className="text-center">
             <CharlieTopBar />
-            <h1 className="text-2xl md:text-4xl mb-4">Charlie's Page</h1>
             {videoDetails && (
                 <div className="current-song mt-8">
                     <h3 className="text-xl">Currently Playing</h3>
