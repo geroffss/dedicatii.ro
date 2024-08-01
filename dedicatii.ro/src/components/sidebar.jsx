@@ -3,7 +3,7 @@ import Logout from "./logout";
 
 const Sidebar = ({ onMenuSelect }) => {
     return (
-        <div className="w-full md:w-64 bg-slate-800 p-4">
+        <div className="w-full md:w-64 bg-slate-800 px-4">
             <ul>
                 <li className="mb-2">
                     <button 
