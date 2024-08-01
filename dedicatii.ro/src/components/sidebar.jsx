@@ -38,6 +38,14 @@ const Sidebar = ({ onMenuSelect }) => {
                         Last Purchases
                     </button>
                 </li>
+                <li className="mb-2">
+                    <button 
+                        className="text-white hover:text-gray-900 focus:outline-none"
+                        onClick={() => onMenuSelect("Possible Queue")}
+                    >
+                        Possible Queue
+                    </button>
+                </li>
             </ul>
         </div>
     );

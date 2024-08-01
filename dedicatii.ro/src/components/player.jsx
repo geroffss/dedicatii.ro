@@ -16,6 +16,8 @@ const PlayerComponent = ({ onSongChange }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentVideoId, setCurrentVideoId] = useState(null);
+  const [currentTitle, setCurrentTitle] = useState('Title Placeholder');
+  const [currentThumbnail, setCurrentThumbnail] = useState('https://via.placeholder.com/150');
   const playerRef = useRef(null);
 
   useEffect(() => {
@@ -65,20 +67,53 @@ const PlayerComponent = ({ onSongChange }) => {
   }, [playlistID]);
 
   useEffect(() => {
+    if (auth.currentUser) {
+      const uid = auth.currentUser.uid;
+      const currentSongRef = ref(database, `nova/${uid}/currentSong`);
+
+      const fetchCurrentSongDetails = async () => {
+        try {
+          const currentSongSnap = await get(currentSongRef);
+          if (currentSongSnap.exists()) {
+            const videoId = currentSongSnap.val();
+            setCurrentVideoId(videoId);
+
+            // Fetch video details from YouTube API
+            const response = await axios.get('https://www.googleapis.com/youtube/v3/videos', {
+              params: {
+                part: 'snippet',
+                id: videoId,
+                key: API_KEY,
+              },
+            });
+
+            const videoData = response.data.items[0];
+            setCurrentTitle(videoData.snippet.title);
+            setCurrentThumbnail(videoData.snippet.thumbnails.default.url);
+          } else {
+            console.error('Current song not found in database');
+          }
+        } catch (error) {
+          console.error('Error fetching current song details', error);
+        }
+      };
+
+      fetchCurrentSongDetails();
+    }
+  }, [currentVideoId]);
+
+  useEffect(() => {
     if (playlist.length > 0 && onSongChange) {
       const currentVideoId = playlist[currentVideoIndex]?.snippet?.resourceId?.videoId;
       const uid = auth.currentUser.uid;
-
-      // Save current song to the database
       const currentSongRef = ref(database, `nova/${uid}/currentSong`);
       set(currentSongRef, currentVideoId);
 
       onSongChange(playlistID, currentVideoId);
-      setCurrentVideoId(currentVideoId); // Update the currentVideoId state
+      setCurrentVideoId(currentVideoId);
     }
   }, [currentVideoIndex, playlist, playlistID, onSongChange]);
 
-  // Function to play next song or next in the playlist
   const playNextOrNextInPlaylist = async () => {
     if (auth.currentUser) {
       const uid = auth.currentUser.uid;
@@ -134,11 +169,11 @@ const PlayerComponent = ({ onSongChange }) => {
 
   const handleProgress = (state) => {
     setCurrentTime(state.playedSeconds);
-    setDuration(state.duration || duration); 
+    setDuration(state.duration || duration);
   };
 
   const handleDuration = (duration) => {
-    setDuration(duration); 
+    setDuration(duration);
   };
 
   const handleSeek = (event) => {
@@ -148,9 +183,6 @@ const PlayerComponent = ({ onSongChange }) => {
       playerRef.current.seekTo(newTime);
     }
   };
-
-  const currentThumbnail = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.thumbnails?.default?.url : 'https://via.placeholder.com/150';
-  const currentTitle = playlist.length > 0 ? playlist[currentVideoIndex]?.snippet?.title : 'Title Placeholder';
 
   return (
     <div className="player p-6 bg-gray-900 text-white shadow-lg">

@@ -22,7 +22,6 @@ const CharliePage = () => {
     const [currentSong, setCurrentSong] = useState(null);
     const [videoDetails, setVideoDetails] = useState(null);
     const [newVideoId, setNewVideoId] = useState('');
-    const [newPossibleQueueVideoId, setNewPossibleQueueVideoId] = useState(''); // New state for possibleQueue input
     const [possibleQueue, setPossibleQueue] = useState([]);
 
     useEffect(() => {
@@ -105,10 +104,7 @@ const CharliePage = () => {
                     id: videoId,
                     key: API_KEY
                 }
-            });
-    
-            console.log(`API response for video ID ${videoId}:`, response.data);
-    
+            });    
             if (response.data.items.length === 0) {
                 console.log('No video data found for video ID:', videoId);
                 return null;
@@ -126,6 +122,7 @@ const CharliePage = () => {
             return null;
         }
     };
+
     const handleRedeemCode = () => {
         setIsRedeemModalOpen(true);
     };
@@ -136,8 +133,14 @@ const CharliePage = () => {
 
     const handleQRScan = (data) => {
         if (data) {
+            console.log('Scanned QR code result:', data);
             setQrResult(data.text);
-            setIsQRModalOpen(true);
+            setIsQRModalOpen(false);
+            if (data.text.startsWith('http')) {
+                window.location.href = data.text;
+            } else {
+                alert('Scanned data is not a URL.');
+            }
         }
     };
 
@@ -164,51 +167,18 @@ const CharliePage = () => {
     };
 
     const addVideoToQueue = async (videoId) => {
-        const db = getDatabase(app);
+        const functions = getFunctions(app, 'europe-central2');
         const urlPath = window.location.pathname;
         const pathParts = urlPath.split('/');
         const uid = pathParts[3];
-        const songQueueRef = ref(db, `nova/${uid}/songQueue`);
-
+    
         try {
-            const snapshot = await get(songQueueRef);
-            const data = snapshot.val();
-            let nextIndex = 0;
-
-            if (data) {
-                const indices = Object.keys(data).map(Number);
-                nextIndex = indices.length ? Math.max(...indices) + 1 : 0;
-            }
-            await update(songQueueRef, { [nextIndex]: videoId });
-
-            console.log('Video added to queue successfully.');
+            const addToSongQueue = httpsCallable(functions, 'addToSongQueue');
+            const result = await addToSongQueue({ novaID: uid, songID: videoId });
+            console.log(videoId)
+            console.log('Video added to queue successfully:', result.data);
         } catch (error) {
             console.error('Error adding video to queue:', error);
-        }
-    };
-
-    // New function to add a video to the possibleQueue
-    const addVideoToPossibleQueue = async (videoId) => {
-        const db = getDatabase(app);
-        const urlPath = window.location.pathname;
-        const pathParts = urlPath.split('/');
-        const uid = pathParts[3];
-        const possibleQueueRef = ref(db, `nova/${uid}/possibleQueue`);
-    
-        try {
-            const snapshot = await get(possibleQueueRef);
-            const data = snapshot.val();
-            let nextIndex = 0;
-    
-            if (data) {
-                const indices = Object.keys(data).map(Number);
-                nextIndex = indices.length ? Math.max(...indices) + 1 : 0;
-            }
-            await update(possibleQueueRef, { [nextIndex]: videoId });
-    
-            console.log('Video added to possibleQueue successfully.');
-        } catch (error) {
-            console.error('Error adding video to possibleQueue:', error);
         }
     };
 
@@ -238,46 +208,40 @@ const CharliePage = () => {
                     Scan QR Code
                 </button>
                 </div>
-                
-                {/* New input and button for adding to possibleQueue */}
-                <input 
-                    type="text" 
-                    placeholder="Enter video ID for possible queue" 
-                    className="border p-2 mb-4 w-1/2 mx-auto"
-                    value={newPossibleQueueVideoId}
-                    onChange={(e) => setNewPossibleQueueVideoId(e.target.value)}
-                />
-                <button 
-                    className="bg-purple-500 text-white py-2 px-4 rounded mb-4"
-                    onClick={() => addVideoToPossibleQueue(newPossibleQueueVideoId)}
-                >
-                    Add to Possible Queue
-                </button>
-
                 {possibleQueue.length > 0 && (
-                    <div className="possible-queue mt-8">
-                        <h3 className="text-xl mb-4">Possible Queue</h3>
-                        <div className="flex overflow-x-auto space-x-4">
-                            {possibleQueue.map((video, index) => (
-                                video ? (
-                                    <div key={video.id + index} className="flex-none w-48 p-4 border rounded-lg shadow-md flex flex-col justify-between">
-                                        <div>
-                                            <img src={video.thumbnail} alt={video.title} className="w-32 h-32 mx-auto mb-2 rounded" />
-                                            <p className="font-bold">{video.title}</p>
-                                            <p>{video.artist}</p>
-                                        </div>
-                                        <button 
-                                            className="bg-purple-500 text-white py-2 px-4 rounded mt-2 w-full"
-                                            onClick={() => addVideoToQueue(video.id)}
-                                        >
-                                            Add to Queue
-                                        </button>
+                <div className="possible-queue mt-8 bg-gray-100 p-6 rounded-lg shadow-lg">
+                    <h3 className="text-2xl mb-6 font-semibold text-center">Possible Queue</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {possibleQueue.map((video, index) => (
+                            video ? (
+                                <div 
+                                    key={video.id + index} 
+                                    className="flex-none p-4 border rounded-lg shadow-md flex flex-col justify-between bg-white hover:shadow-lg transition-shadow duration-300"
+                                >
+                                    <div>
+                                        <img 
+                                            src={video.thumbnail} 
+                                            alt={video.title} 
+                                            className="w-full h-32 object-cover mb-4 rounded" 
+                                        />
+                                        <p className="font-bold text-lg">{video.title}</p>
+                                        <p className="text-gray-600">{video.artist}</p>
                                     </div>
-                                ) : null
-                            ))}
-                        </div>
-                    </div>
-                )}
+                                    <button 
+                                        className="bg-purple-500 text-white py-2 px-4 rounded mt-4 w-full hover:bg-purple-600 transition-colors duration-300"
+                                        onClick={() => {
+                                            console.log(video.id);
+                                            addVideoToQueue(video.id);
+                                        }}
+                                    >
+                                        Add to Queue
+                                    </button>
+                                </div>
+                            ) : null
+                ))}
+        </div>
+    </div>
+)}
             </div>
 
             <Modal
