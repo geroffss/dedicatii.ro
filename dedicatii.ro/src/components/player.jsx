@@ -211,7 +211,10 @@ const PlayerComponent = ({ onSongChange }) => {
               </li>
             ))}
           </ul>
-          <div className="time-controls mt-6 flex items-center justify-center">
+         
+        </div>
+      </div>
+      <div className="time-controls mt-6 flex items-center justify-center w-full">
             <span className="text-white mr-3">
               {`${Math.floor(currentTime / 60)}:${Math.floor(currentTime % 60).toString().padStart(2, '0')}`}
             </span>
@@ -228,9 +231,8 @@ const PlayerComponent = ({ onSongChange }) => {
               {`${Math.floor(duration / 60)}:${Math.floor(duration % 60).toString().padStart(2, '0')}`}
             </span>
           </div>
-        </div>
-      </div>
       <div className="player-controls flex justify-center mt-6">
+        
         <button className="prev text-white p-3 mx-3 rounded-full" onClick={handlePrev}>
           <FontAwesomeIcon icon={faBackward} />
         </button>
