@@ -41,8 +41,8 @@ const Login = () => {
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-bl from-[#a856eb] via-[#d64061] to-[#211624]">
     <div className="bg-white bg-opacity-15 backdrop-filter backdrop-blur-lg p-8 rounded-2xl shadow-lg max-w-sm w-full">
       <img className="w-[136px] h-[136px] mx-auto" src={logo} alt="Placeholder" />
-      <h1 className="text-4xl font-bold mb-2 text-center text-white">dedicatii.ro</h1>
-      <h2 className="text-xl font-semibold mb-6 text-center text-gray-200">Alege-ți melodia preferată și ascult-o în boxele localului</h2>
+      <h1 className="text-4xl font-bold mb-2 text-center text-white">Dedicații.ro</h1>
+      <h2 className="text-xl font-semibold mb-6 text-center text-gray-200">Piesa ta în boxele localului</h2>
       <button
   className="w-full border text-white py-3 px-4 rounded-lg flex items-center justify-center"
   onClick={handleGoogleSignIn}

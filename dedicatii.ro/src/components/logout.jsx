@@ -14,8 +14,11 @@ const Logout = () => {
       };
     return (
         <div className="flex items-center">
-             <button onClick={handleLogout} className=" text-white rounded">
+             <button onClick={handleLogout} className=" text-white rounded flex gap-2 items-center ">
         <FontAwesomeIcon icon={faSignOutAlt} />
+        <p>
+          Logout
+        </p>
       </button>
         </div>
     );
