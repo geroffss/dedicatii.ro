@@ -136,6 +136,7 @@ const CharliePage = () => {
             const result = await addToSongQueue({ novaID: uid, songID: videoId });
             console.log(videoId)
             console.log('Video added to queue successfully:', result.data);
+            alert('Melodia a fost adăugată cu succes în coadă!');   
         } catch (error) {
             console.error('Error adding video to queue:', error);
         }

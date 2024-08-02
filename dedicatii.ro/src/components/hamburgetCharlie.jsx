@@ -55,7 +55,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     };
 
     const toggleCameraMode = () => {
-        setCameraMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
+        setCameraMode((prevMode) => (prevMode === 'user' ? 'user' : 'user'));
     };
 
     const handleRedeemSubmit = async () => {
@@ -108,7 +108,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                         <input
                             type="text"
                             placeholder="Adaugă codul..."
-                            className="border p-2 w-full mb-4 rounded-lg"
+                            className="border p-2 w-full mb-4 rounded-lg text-black"
                             value={redeemCode}
                             onChange={(e) => setRedeemCode(e.target.value)}
                         />
