@@ -18,11 +18,12 @@ const QrCode = ({ playlistId, currentSong }) => {
     if (!playlistId || !currentSong || !uid) return '';
     const currentDomain = window.location.origin;
     const url = `${currentDomain}/charlie/${uid}`;
-    console.log('Generated QR Code URLs:', url); // Log the generated URL
+    console.log('Generated QR Code URL:', url); // This logs the generated URL for verification
     return url;
 };
 
 const url = generateQRCodeValue();
+
 
   return (
     <div className="bg-gray-800 p-4 text-center self-center flex justify-center items-center content-center flex-col w-full">
