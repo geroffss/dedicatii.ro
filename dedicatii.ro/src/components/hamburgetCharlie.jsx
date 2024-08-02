@@ -38,35 +38,42 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     useEffect(() => {
         let codeReader;
         if (isQRModalOpen && isMediaSupported) {
-            codeReader = new BrowserQRCodeReader();
-            codeReader.decodeFromVideoDevice(null, videoRef.current, (result, err) => {
-                if (result) {
-                    console.log('Scanned QR code result:', result.getText());
-                    setQrResult(result.getText());
-                    setIsQRModalOpen(false);
-
-                    try {
-                        const parsedUrl = new URL(result.getText());
-                        if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
-                            console.log('Redirecting to:', parsedUrl.href);
-                            window.location.assign(parsedUrl.href);
-                        } else {
-                            console.log('Scanned data is not a URL:', result.getText());
-                            alert('Scanned data is not a URL.');
+            const startScanner = async () => {
+                try {
+                    codeReader = new BrowserQRCodeReader();
+                    await codeReader.decodeFromVideoDevice(null, videoRef.current, (result, err) => {
+                        if (result) {
+                            console.log('Scanned QR code result:', result.getText());
+                            setQrResult(result.getText());
+                            setIsQRModalOpen(false);
+                
+                            try {
+                                const parsedUrl = new URL(result.getText());
+                                if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+                                    console.log('Redirecting to:', parsedUrl.href);
+                                    window.location.assign(parsedUrl.href);
+                                } else {
+                                    console.log('Scanned data is not a URL:', result.getText());
+                                    alert('Scanned data is not a URL.');
+                                }
+                            } catch (error) {
+                                console.log('Scanned data is not a valid URL:', result.getText());
+                                alert('Scanned data is not a valid URL.');
+                            }
                         }
-                    } catch (error) {
-                        console.log('Scanned data is not a valid URL:', result.getText());
-                        alert('Scanned data is not a valid URL.');
-                    }
+                        if (err) {
+                            if (err.name !== 'NotFoundException') {
+                                console.error('QR Code scanning error:', err);
+                            }
+                        }
+                    });
+                } catch (err) {
+                    console.error('Error starting QR code scanner:', err);
                 }
-                if (err) {
-                    if (err.name !== 'NotFoundException') {
-                        console.error('QR Code scanning error:', err);
-                    }
-                }
-            }).catch(err => {
-                console.error('Error starting QR code scanner:', err);
-            });
+            };
+
+            startScanner();
+
         }
 
         return () => {
@@ -146,7 +153,9 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                     >
                         <h2 className="text-xl mb-4">Scanează codul QR</h2>
                         {isMediaSupported ? (
-                            <video ref={videoRef} style={{ width: '100%' }} />
+                            <div className="relative" style={{ width: '100%', height: 'auto' }}>
+                                <video ref={videoRef} style={{ width: '100%', height: 'auto' }} />
+                            </div>
                         ) : (
                             <p className="text-red-500">QR scanning is not supported in this browser.</p>
                         )}
