@@ -40,15 +40,22 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
             console.log('Scanned QR code result:', data);
             setQrResult(data.text);
             setIsQRModalOpen(false);
-
-            if (data.text.startsWith('https')) {
-                console.log('Redirecting to:', data.text);
-                window.location.assign(data.text);
+    
+            // Ensure data.text is properly parsed and interpreted
+            const parsedUrl = new URL(data.text);
+            if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+                console.log('Redirecting to:', parsedUrl.href);
+                window.location.assign(parsedUrl.href);
             } else {
+                console.log('Scanned data is not a URL:', data.text);
                 alert('Scanned data is not a URL.');
             }
+        } else {
+            console.log('No data received from QR scanner');
         }
     };
+    
+    
 
     const handleQRError = (error) => {
         console.error(error);
