@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faUser,faSignOutAlt, faBars } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import logo from '../logo2.svg'
+import HamburgerMenu from '../components/hamburgetCharlie';
 
 const CharlieTopBar = () => {
   const [userName, setUserName] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   useEffect(() => {
     const auth = getAuth();
@@ -29,17 +36,22 @@ const CharlieTopBar = () => {
   };
 
   return (
-    <div className="flex items-center justify-between bg-slate-800 p-4">
-      <div className="flex items-center">
-        <h1 className="text-white text-2xl">Dedicatii.ro</h1>
-      </div>
-      <div className="flex items-center">
-        <h1 className="text-white mr-4">{userName}</h1>
-        <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">
-          <FontAwesomeIcon icon={faSignOutAlt} />
-        </button>
-      </div>
+    <div className="relative flex items-center bg-dedicatii-bg p-4">
+      <div className="text-white block md:hidden">
+        <button onClick={toggleMenu}>
+          <FontAwesomeIcon icon={faBars} />
+        </button>     
+        <HamburgerMenu isOpen={isMenuOpen} toggleMenu={toggleMenu}  />
+
+     </div>
+    <div className="absolute left-1/2 transform -translate-x-1/2">
+      <img src={logo} alt="" className="h-10 " />
     </div>
+    <div className="ml-auto text-white flex items-center gap-5">
+        <FontAwesomeIcon icon={faUser} />
+        <FontAwesomeIcon icon={faSignOutAlt} className="hidden md:flex"/>
+    </div>
+  </div>
   );
 };
 

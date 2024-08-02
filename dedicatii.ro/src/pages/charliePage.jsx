@@ -6,29 +6,20 @@ import { getDatabase, ref, onValue, update, get, push } from 'firebase/database'
 import { app } from '../firebaseconfig';
 import axios from 'axios';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import BotBar from '../components/botbar';
 
 const API_KEY = 'AIzaSyAVaymp99OZmRWQ8ddDfGURCuvK__Qk-yc';
 const DEFAULT_VIDEO_ID = 'C27NShgTQE';
 const DEFAULT_VIDEO_COUNT = 10;
 
 const CharliePage = () => {
-    const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
-    const [isQRModalOpen, setIsQRModalOpen] = useState(false);
-    const [qrResult, setQrResult] = useState('');
-    const [cameraMode, setCameraMode] = useState('environment');
-    const [redeemCode, setRedeemCode] = useState('');
-    const [isMediaSupported, setIsMediaSupported] = useState(true);
     const [playlist, setPlaylist] = useState([]);
     const [currentSong, setCurrentSong] = useState(null);
     const [videoDetails, setVideoDetails] = useState(null);
     const [newVideoId, setNewVideoId] = useState('');
     const [possibleQueue, setPossibleQueue] = useState([]);
-
-    useEffect(() => {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            setIsMediaSupported(false);
-        }
-    }, []);
 
     useEffect(() => {
         const urlPath = window.location.pathname;
@@ -134,51 +125,6 @@ const CharliePage = () => {
         }
     };
 
-    const handleRedeemCode = () => {
-        setIsRedeemModalOpen(true);
-    };
-
-    const handleScanQRCode = () => {
-        setIsQRModalOpen(true);
-    };
-
-    const handleQRScan = (data) => {
-        if (data) {
-            console.log('Scanned QR code result:', data);
-            setQrResult(data.text);
-            setIsQRModalOpen(false);
-    
-            if (data.text.startsWith('https')) {
-                console.log('Redirecting to:', data.text);
-                window.location.assign(data.text);
-            } else {
-                alert('Scanned data is not a URL.');
-            }
-        }
-    };
-
-    const handleQRError = (error) => {
-        console.error(error);
-    };
-
-    const toggleCameraMode = () => {
-        setCameraMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
-    };
-
-    const handleRedeemSubmit = async () => {
-        const functions = getFunctions(app, 'europe-central2');
-        const redeemCodeFunction = httpsCallable(functions, 'redeemCode');
-
-        try {
-            const result = await redeemCodeFunction({ code: redeemCode });
-            console.log('Code redeemed successfully:', result.data);
-        } catch (error) {
-            console.error('Error redeeming code:', error);
-        }
-
-        setIsRedeemModalOpen(false);
-    };
-
     const addVideoToQueue = async (videoId) => {
         const functions = getFunctions(app, 'europe-central2');
         const urlPath = window.location.pathname;
@@ -196,124 +142,65 @@ const CharliePage = () => {
     };
 
     return (
-        <div className="text-center">
-            <CharlieTopBar />
-            {videoDetails && (
-                <div className="current-song mt-8">
-                    <h3 className="text-xl">Currently Playing</h3>
-                    <p><strong>Title:</strong> {videoDetails.title}</p>
-                    <p><strong>Artist:</strong> {videoDetails.artist}</p>
-                </div>
-            )}
-            <div className="flex flex-col items-center">
-                <div className="flex gap-5">
-                <button 
-                    className="bg-blue-500 text-white py-2 px-4 rounded mb-4"
-                    onClick={handleRedeemCode}
-                >
-                    Redeem Code
-                </button>
-                <button 
-                    className="bg-green-500 text-white py-2 px-4 rounded mb-4"
-                    onClick={handleScanQRCode}
-                >
-                    Scan QR Code
-                </button>
-                </div>
-                {possibleQueue.length > 0 && (
-                <div className="possible-queue mt-8 bg-gray-100 p-6 rounded-lg shadow-lg">
-                    <h3 className="text-2xl mb-6 font-semibold text-center">Possible Queue</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {possibleQueue.map((video, index) => (
-                            video ? (
-                                <div 
-                                    key={video.id + index} 
-                                    className="flex-none p-4 border rounded-lg shadow-md flex flex-col justify-between bg-white hover:shadow-lg transition-shadow duration-300"
-                                >
-                                    <div>
-                                        <img 
-                                            src={video.thumbnail} 
-                                            alt={video.title} 
-                                            className="w-full h-32 object-cover mb-4 rounded" 
-                                        />
-                                        <p className="font-bold text-lg">{video.title}</p>
-                                        <p className="text-gray-600">{video.artist}</p>
-                                    </div>
-                                    <button 
-                                        className="bg-purple-500 text-white py-2 px-4 rounded mt-4 w-full hover:bg-purple-600 transition-colors duration-300"
-                                        onClick={() => {
-                                            console.log(video.id);
-                                            addVideoToQueue(video.id);
-                                        }}
-                                    >
-                                        Add to Queue
-                                    </button>
-                                </div>
-                            ) : null
-                ))}
+        <div className="text-center bg-dedicatii-bg2">
+                    <CharlieTopBar />
+
+        <div className="flex items-center flex-col p-4">
+        <div
+            className="font-inter w-full text-2xl font-bold text-white"
+            >
+            Melodii disponibile
         </div>
-    </div>
-)}
-            </div>
-
-            <Modal
-                isOpen={isRedeemModalOpen}
-                onRequestClose={() => setIsRedeemModalOpen(false)}
-                contentLabel="Redeem Code Modal"
-                className="bg-white p-4 rounded shadow-lg max-w-md mx-auto mt-20"
-                overlayClassName="fixed inset-0 bg-black bg-opacity-50"
+         <div className="bg-t-bg-rectangle-14tvector-caut-omelodie z-0 flex flex-grow items-center self-stretch bg-cover bg-center py-2 px-4 text-left justify-center"
             >
-                <h2 className="text-xl mb-4">Redeem Code</h2>
-                <input 
-                    type="text" 
-                    placeholder="Enter your code" 
-                    className="border p-2 w-full mb-4"
-                    value={redeemCode}
-                    onChange={(e) => setRedeemCode(e.target.value)}
+            <div className="z-2 flex items-center justify-center w-3/2 bg-white bg-opacity-10 rounded-2xl px-4">
+                <FontAwesomeIcon icon={faSearch} className="text-white" />
+                <input
+                className="font-inter text-center flex min-w-0 flex-grow text-xl leading-normal tracking-normal text-white placeholder:text-white bg-transparent"
+                placeholder="Caută o melodie"
+                type="text"
                 />
-                <button 
-                    className="bg-blue-500 text-white py-2 px-4 rounded"
-                    onClick={handleRedeemSubmit}
-                >
-                    Submit
-                </button>
-            </Modal>
-
-            <Modal
-                isOpen={isQRModalOpen}
-                onRequestClose={() => setIsQRModalOpen(false)}
-                contentLabel="Scan QR Code Modal"
-                className="bg-white p-4 rounded shadow-lg max-w-md mx-auto"
-                overlayClassName="fixed inset-0 bg-black bg-opacity-50"
-            >
-                <h2 className="text-xl mb-4">Scan QR Code</h2>
-                {isMediaSupported ? (
-                    <QrScanner
-                        delay={300}
-                        onError={handleQRError}
-                        onScan={handleQRScan}
-                        style={{ width: '100%' }}
-                        constraints={{
-                            video: { facingMode: { exact: cameraMode } }
+            </div>
+            </div>
+            {possibleQueue.length > 0 && (
+            <div className="possible-queue p-4 rounded-[5px] mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {possibleQueue.map((video, index) => (
+                    video ? (
+                    <div 
+                        key={video.id + index} 
+                        className="font-inter flex flex-col items-center justify-between gap-y-[5px] rounded-[5px] bg-[#dcdcdc19] pb-2.5 pl-[17px] pr-4 pt-[15px] text-center leading-[normal] tracking-[0px] text-white shadow-md hover:shadow-lg transition-shadow duration-300"
+                    >
+                        <aside className="flex h-32 w-32 flex-shrink-0 flex-col items-center pr-0.5">
+                        <img 
+                            src={video.thumbnail} 
+                            alt={video.title} 
+                            className="h-32 w-32 flex-shrink-0 rounded-[5px] object-cover object-center text-center mb-4" 
+                            loading="lazy"
+                        />
+                        </aside>
+                        <div className="flex flex-col items-center">
+                        <h2 className="self-stretch pt-2 font-medium">{video.title}</h2>
+                        <div className="font-light">{video.artist}</div>
+                        </div>
+                        <button 
+                        className="bg-dedicatii-button3 text-white py-2 px-4 rounded mt-4 w-full transition-colors duration-300"
+                        onClick={() => {
+                            console.log(video.id);
+                            addVideoToQueue(video.id);
                         }}
-                    />
-                ) : (
-                    <p className="text-red-500">QR scanning is not supported in this browser.</p>
-                )}
-                {qrResult && <p className="mt-4">Scanned Result: {qrResult}</p>}
-                <button 
-                    className="bg-blue-500 text-white py-2 px-4 rounded mt-4"
-                    onClick={toggleCameraMode}
-                >
-                    Switch Camera
-                </button>
-                <button 
-                    className="bg-red-500 text-white py-2 px-4 rounded mt-4"
-                    onClick={() => setIsQRModalOpen(false)}
-                >
-                    Close
-                </button>
-            </Modal>
+                        >
+                        Dedică
+                        </button>
+                    </div>
+                    ) : null
+                ))}
+          </div>
+        </div>
+        )}
+        </div>
+
+            <BotBar videoDetails={videoDetails} />
         </div>
     );
 };
