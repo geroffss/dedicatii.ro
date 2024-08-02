@@ -33,14 +33,25 @@ const CharliePage = () => {
     useEffect(() => {
         const urlPath = window.location.pathname;
         const pathParts = urlPath.split('/');
-        const playlistId = pathParts[2];
-        const uid = pathParts[3];
-
-        if (playlistId && uid) {
-            fetchPlaylist(playlistId, uid);
-            fetchPossibleQueue(uid);
+        const uid = pathParts[2];
+    
+        if (uid) {
+            const db = getDatabase();
+            const playlistRef = ref(db, `nova/${uid}/playlistID`);
+    
+            get(playlistRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const playlistId = snapshot.val();
+                    fetchPlaylist(playlistId, uid);
+                    fetchPossibleQueue(uid);
+                } else {
+                    console.error("No playlist ID found");
+                }
+            }).catch((error) => {
+                console.error("Error fetching playlist ID:", error);
+            });
         }
-    }, []);
+    }, []); 
 
     const fetchPlaylist = (playlistID, uid) => {
         const db = getDatabase(app);
@@ -136,8 +147,10 @@ const CharliePage = () => {
             console.log('Scanned QR code result:', data);
             setQrResult(data.text);
             setIsQRModalOpen(false);
-            if (data.text.startsWith('http')) {
-                window.location.href = data.text;
+    
+            if (data.text.startsWith('https')) {
+                console.log('Redirecting to:', data.text);
+                window.location.assign(data.text);
             } else {
                 alert('Scanned data is not a URL.');
             }
@@ -170,7 +183,7 @@ const CharliePage = () => {
         const functions = getFunctions(app, 'europe-central2');
         const urlPath = window.location.pathname;
         const pathParts = urlPath.split('/');
-        const uid = pathParts[3];
+        const uid = pathParts[2];
     
         try {
             const addToSongQueue = httpsCallable(functions, 'addToSongQueue');

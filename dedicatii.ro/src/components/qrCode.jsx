@@ -17,7 +17,7 @@ const QrCode = ({ playlistId, currentSong }) => {
   const generateQRCodeValue = () => {
     if (!playlistId || !currentSong || !uid) return '';
     const currentDomain = window.location.origin;
-    return `${currentDomain}/charlie/${playlistId}/${uid}`;
+    return `${currentDomain}/charlie/${uid}`;
   };
 
   const url = generateQRCodeValue();
