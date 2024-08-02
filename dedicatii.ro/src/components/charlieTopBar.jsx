@@ -49,7 +49,8 @@ const CharlieTopBar = () => {
     </div>
     <div className="ml-auto text-white flex items-center gap-5">
         <FontAwesomeIcon icon={faUser} />
-        <FontAwesomeIcon icon={faSignOutAlt} className="hidden md:flex"/>
+        <FontAwesomeIcon icon={faSignOutAlt}
+        onClick={handleLogout} className="hidden md:flex"/>
     </div>
   </div>
   );

@@ -4,7 +4,7 @@ import { faBackward, faPlay, faPause, faForward, faPlus } from '@fortawesome/fre
 
 const PlayerControlsComponent = ({ isPlaying, playVideo, pauseVideo, prevVideo, nextVideo, addTempSong }) => {
   return (
-    <div className="player-controls flex justify-center mt-6">
+    <div className="player-controls flex justify-center mt-6 ">
       <button className="prev text-white p-3 mx-3 rounded-full" onClick={prevVideo}>
         <FontAwesomeIcon icon={faBackward} />
       </button>

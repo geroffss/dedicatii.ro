@@ -14,6 +14,7 @@ module.exports = {
       colors: {
         'dedicatii-bg':'#120E18',
         'dedicatii-bg2':'#1A1423',
+        'dedicatii-bg3':'#2D2836',
         'dedicatii-button1': '#de3c4b',
         'dedicatii-button2': '#63a1fa',
         'dedicatii-button3': '#a658f7',

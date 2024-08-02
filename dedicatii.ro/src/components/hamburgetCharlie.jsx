@@ -75,6 +75,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
             console.log('Code redeemed successfully:', result.data);
         } catch (error) {
             console.error('Error redeeming code:', error);
+            window.reload();
         }
 
         setIsRedeemModalOpen(false);

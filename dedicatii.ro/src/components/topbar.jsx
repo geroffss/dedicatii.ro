@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import Logout from "./logout";
+import React, { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import { faUser,faSignOutAlt, faBars } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import logo from '../logo2.svg'
+import HamburgerMenu2 from '../components/hamburger';
 
-const Topbar = () => {
+const CharlieTopBar = () => {
   const [userName, setUserName] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   useEffect(() => {
     const auth = getAuth();
@@ -18,20 +26,33 @@ const Topbar = () => {
     return () => unsubscribe();
   }, []);
 
-  return (
-    <div className="flex items-center justify-between bg-slate-800 p-4">
-    <div className="flex items-center">
-      <h1 className="text-white text-2xl">Dedicatii.ro</h1>
-    </div>
-    <div className="flex items-center">
-      <h1 className="text-white mr-4">{userName}</h1>
-      <div className="hidden md:block">
-      <Logout/>
-      </div>
+  const handleLogout = () => {
+    const auth = getAuth();
+    signOut(auth).then(() => {
+      console.log("User signed out");
+    }).catch((error) => {
+      console.error("Error signing out: ", error);
+    });
+  };
 
+  return (
+    <div className=" flex items-center bg-dedicatii-bg p-4 fixed top-0 left-0 w-full z-50">
+    <div className="text-white block md:hidden">
+      <button onClick={toggleMenu}>
+        <FontAwesomeIcon icon={faBars} />
+      </button>     
+      <HamburgerMenu2 isOpen={isMenuOpen} toggleMenu={toggleMenu} />
+    </div>
+    <div className="text-xl text-white ml-2 md:ml-0 hidden md:block font-inter font-bold">Dedicatii.ro</div>
+    <div className="absolute left-1/2 transform -translate-x-1/2">
+      <img src={logo} alt="" className="h-10" />
+    </div>
+    <div className="ml-auto text-white flex items-center gap-5">
+      <FontAwesomeIcon icon={faUser} />
+      <FontAwesomeIcon icon={faSignOutAlt} onClick={handleLogout} className="hidden md:flex"/>
     </div>
   </div>
   );
 };
 
-export default Topbar;
+export default CharlieTopBar;

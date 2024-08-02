@@ -3,7 +3,7 @@ import QRCode from "react-qr-code";
 import { getAuth } from "firebase/auth";
 import { app } from "../firebaseconfig";
 
-const QrCode = ({ playlistId, currentSong }) => {
+const QrCode = ({ }) => {
   const [uid, setUid] = useState(null);
 
   useEffect(() => {
@@ -15,7 +15,6 @@ const QrCode = ({ playlistId, currentSong }) => {
   }, []);
 
   const generateQRCodeValue = () => {
-    if (!playlistId || !currentSong || !uid) return '';
     const currentDomain = window.location.origin;
     const url = `${currentDomain}/charlie/${uid}`;
     console.log('Generated QR Code URL:', url);

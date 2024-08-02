@@ -17,6 +17,7 @@ const PlayerComponent = ({ onSongChange }) => {
   const [duration, setDuration] = useState(0);
   const [currentVideoId, setCurrentVideoId] = useState(null);
   const [currentTitle, setCurrentTitle] = useState('Title Placeholder');
+  const [currentArtist, setCurrentArtist] = useState('Artist Placeholder');
   const [currentThumbnail, setCurrentThumbnail] = useState('https://via.placeholder.com/150');
   const playerRef = useRef(null);
 
@@ -88,7 +89,8 @@ const PlayerComponent = ({ onSongChange }) => {
             });
 
             const videoData = response.data.items[0];
-            setCurrentTitle(videoData.snippet.title);
+            setCurrentTitle(videoData.snippet.title.split(' - ')[1]);
+            setCurrentArtist(videoData.snippet.channelTitle);
             setCurrentThumbnail(videoData.snippet.thumbnails.default.url);
           } else {
             console.error('Current song not found in database');
@@ -185,36 +187,43 @@ const PlayerComponent = ({ onSongChange }) => {
   };
 
   return (
-    <div className="player p-6 bg-gray-900 text-white shadow-lg">
+    <div className="player p-6  text-white m-4 bg-dedicatii-bg rounded-lg">
       <h2 className="text-3xl font-bold mb-6 text-center">Now Playing</h2>
       <div className="flex flex-col md:flex-row">
-        <div className="flex-1 flex flex-col items-center mb-6 md:mb-0">
-          <img
-            src={currentThumbnail}
-            alt="Album Art"
-            className="w-48 h-48 mb-4 rounded-lg shadow-md"
-          />
-          <div className="text-center">
-            <h3 className="text-2xl font-semibold">{currentTitle}</h3>
+      <div className="font-inter flex flex-col md:flex-row w-full items-center justify-center gap-5 rounded-lg pb-2 pt-2 text-center text-base text-white mb-6 md:mb-0">
+  <div className="bg-dedicatii-bg3 flex flex-col items-center justify-center text-center p-4 rounded-lg flex-shrink-0">
+    <img
+      src={currentThumbnail}
+      alt="Album Art"
+      className="h-52 w-52 rounded-lg object-cover shadow-2xl"
+      style={{ objectFit: 'cover' }}
+    />
+    <div className="pt-3 font-medium w-full">
+      <h3 className="text-2xl font-semibold">{currentTitle}</h3>
+    </div>
+    <div className="font-light">{currentArtist}</div>
+  </div>
+  <div className="md:w-1/2 w-full flex flex-col items-center">
+    <ul className="playlist bg-dedicatii-bg3 h-32 md:h-72 p-4 rounded-lg overflow-y-auto w-full">
+      {playlist.map((item, index) => (
+        <li
+          key={index}
+          className={`mb-2 cursor-pointer hover:bg-gray-600 p-2 rounded ${index === currentVideoIndex ? 'bg-gray-800' : ''}`}
+          onClick={() => setCurrentVideoIndex(index)}
+        >
+          <div className="flex items-center gap-2">
+            <img className="w-12" src={item.snippet.thumbnails.default.url} alt={item.snippet.title} />
+            <span>{item.snippet.title}</span>
           </div>
-        </div>
-        <div className="flex-1 md:ml-6">
-          <h3 className="text-2xl font-semibold mb-4">Playlist</h3>
-          <ul className="playlist bg-gray-700 p-4 rounded-lg h-48 overflow-y-auto w-fit">
-            {playlist.map((item, index) => (
-              <li
-                key={index}
-                className={`mb-2 cursor-pointer hover:bg-gray-600 p-2 rounded ${index === currentVideoIndex ? 'bg-gray-800' : ''}`}
-                onClick={() => setCurrentVideoIndex(index)}
-              >
-                {item.snippet.title}
-              </li>
-            ))}
-          </ul>
-         
-        </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+
       </div>
-      <div className="time-controls mt-6 flex items-center justify-center w-full">
+      <div className="time-controls px-4 mt-4 flex items-center justify-center w-full">
             <span className="text-white mr-3">
               {`${Math.floor(currentTime / 60)}:${Math.floor(currentTime % 60).toString().padStart(2, '0')}`}
             </span>
@@ -231,7 +240,7 @@ const PlayerComponent = ({ onSongChange }) => {
               {`${Math.floor(duration / 60)}:${Math.floor(duration % 60).toString().padStart(2, '0')}`}
             </span>
           </div>
-      <div className="player-controls flex justify-center mt-6">
+      <div className="player-controls flex justify-center">
         
         <button className="prev text-white p-3 mx-3 rounded-full" onClick={handlePrev}>
           <FontAwesomeIcon icon={faBackward} />

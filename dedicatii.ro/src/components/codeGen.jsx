@@ -83,51 +83,37 @@ const CodeGen = () => {
     };
 
     return (
-        <div className="code-gen-container bg-gray-900 text-white p-6 shadow-lg">
-            {!user ? (
-                <button 
-                    onClick={signInWithGoogle} 
-                    className="bg-blue-500 text-white p-2 rounded-lg shadow-md hover:bg-blue-600"
-                >
-                    Sign In with Google
-                </button>
-            ) : (
-                <>
-                    <button 
-                        onClick={generateCode} 
-                        className={`bg-green-500 text-white p-2 rounded-lg shadow-md hover:bg-green-600 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        disabled={loading}
-                    >
-                        {loading ? 'Generating...' : 'Generate Code'}
-                    </button>
-                    <div className="mt-4">
-                        <input
-                            type="text"
-                            placeholder="Enter code to check"
-                            value={codeToCheck}
-                            onChange={(e) => setCodeToCheck(e.target.value)}
-                            className="p-2 rounded-lg text-black"
-                        />
-                        <button 
-                            onClick={checkCode} 
-                            className={`bg-blue-500 text-white p-2 rounded-lg shadow-md hover:bg-blue-600 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            disabled={loading}
-                        >
-                            {loading ? 'Checking...' : 'Check Code'}
-                        </button>
-                    </div>
-                </>
-            )}
-            {generatedCode && <p className="mt-4 text-center">Generated Code: {generatedCode}</p>}
-            {checkResult && (
-                <div className="mt-4 text-center">
-                    <p className={checkResult.startsWith('Code is valid') ? 'text-green-500' : 'text-red-500'}>
-                        {checkResult}
-                    </p>
+        <div className="code-gen-container items-center font-inter flex flex-col md:flex-row gap-5 text-center font-medium rounded-lg leading-normal tracking-[0px] bg-dedicatii-bg3 text-white p-6 shadow-2xl">
+        {!user ? (
+          <button 
+            onClick={signInWithGoogle} 
+            className="flex items-center justify-center rounded-[5px] bg-dedicatii-button3 shadow-md hover:bg-blue-600"
+          >
+            <div className="flex w-36 flex-shrink-0 flex-col justify-center pb-0.5 text-center">
+              <div className="flex items-center justify-center text-white">
+                <h2 className="text-center">Sign In with Google</h2>
+              </div>
+            </div>
+          </button>
+        ) : (
+          <>
+            <button 
+              onClick={generateCode} 
+              className={`flex items-center justify-center rounded-[5px] bg-dedicatii-button3 shadow-md hover:bg-dedicatii-button2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={loading}
+            >
+              <div className="flex w-36 flex-shrink-0 flex-col justify-center pb-0.5 text-center">
+                <div className="flex items-center justify-center text-white">
+                  <h2 className="text-center">{loading ? 'Se genereaza...' : 'Genereaza cod'}</h2>
                 </div>
-            )}
-            {error && <p className="mt-4 text-center text-red-500">{error}</p>}
-        </div>
+              </div>
+            </button>
+          </>
+        )}
+          <div className="flex items-center justify-center rounded-[5px] bg-zinc-800 px-11 text-neutral-400">
+            <p className="text-center">Codul generat: {generatedCode}</p>
+          </div>
+      </div>
     );
 };
 
