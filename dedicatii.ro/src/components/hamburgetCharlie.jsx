@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { BrowserQRCodeReader } from '@zxing/browser';
 import Logout from './logout.jsx';
 import Modal from 'react-modal';
-import { Html5Qrcode } from 'html5-qrcode';
 import { app } from '../firebaseconfig';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
@@ -11,7 +11,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     const [qrResult, setQrResult] = useState('');
     const [redeemCode, setRedeemCode] = useState('');
     const [isMediaSupported, setIsMediaSupported] = useState(true);
-    const html5QrcodeScannerRef = useRef(null);
+    const videoRef = useRef(null);
 
     useEffect(() => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -35,29 +35,46 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
         setIsQRModalOpen(true);
     };
 
-    const handleQRScan = (decodedText, decodedResult) => {
-        console.log('Scanned QR code result:', decodedText);
-        setQrResult(decodedText);
-        setIsQRModalOpen(false);
+    useEffect(() => {
+        let codeReader;
+        if (isQRModalOpen && isMediaSupported) {
+            codeReader = new BrowserQRCodeReader();
+            codeReader.decodeFromVideoDevice(null, videoRef.current, (result, err) => {
+                if (result) {
+                    console.log('Scanned QR code result:', result.getText());
+                    setQrResult(result.getText());
+                    setIsQRModalOpen(false);
 
-        try {
-            const parsedUrl = new URL(decodedText);
-            if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
-                console.log('Redirecting to:', parsedUrl.href);
-                window.location.assign(parsedUrl.href);
-            } else {
-                console.log('Scanned data is not a URL:', decodedText);
-                alert('Scanned data is not a URL.');
-            }
-        } catch (error) {
-            console.log('Scanned data is not a valid URL:', decodedText);
-            alert('Scanned data is not a valid URL.');
+                    try {
+                        const parsedUrl = new URL(result.getText());
+                        if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+                            console.log('Redirecting to:', parsedUrl.href);
+                            window.location.assign(parsedUrl.href);
+                        } else {
+                            console.log('Scanned data is not a URL:', result.getText());
+                            alert('Scanned data is not a URL.');
+                        }
+                    } catch (error) {
+                        console.log('Scanned data is not a valid URL:', result.getText());
+                        alert('Scanned data is not a valid URL.');
+                    }
+                }
+                if (err) {
+                    if (err.name !== 'NotFoundException') {
+                        console.error('QR Code scanning error:', err);
+                    }
+                }
+            }).catch(err => {
+                console.error('Error starting QR code scanner:', err);
+            });
         }
-    };
 
-    const handleQRError = (errorMessage) => {
-        console.error('QR Code scanning error:', errorMessage);
-    };
+        return () => {
+            if (codeReader) {
+                codeReader.reset();
+            }
+        };
+    }, [isQRModalOpen, isMediaSupported]);
 
     const handleRedeemSubmit = async () => {
         const functions = getFunctions(app, 'europe-central2');
@@ -72,36 +89,6 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
 
         setIsRedeemModalOpen(false);
     };
-
-    useEffect(() => {
-        if (isQRModalOpen && isMediaSupported) {
-            if (html5QrcodeScannerRef.current) {
-                const html5QrcodeScanner = new Html5Qrcode("reader");
-                html5QrcodeScanner.start(
-                    { facingMode: "environment" },
-                    {
-                        fps: 10,
-                        qrbox: { width: 250, height: 250 }
-                    },
-                    handleQRScan,
-                    handleQRError
-                ).then(() => {
-                    html5QrcodeScannerRef.current = html5QrcodeScanner;
-                }).catch((error) => {
-                    console.error("Failed to start QR scanner", error);
-                });
-            }
-        }
-
-        return () => {
-            if (html5QrcodeScannerRef.current) {
-                html5QrcodeScannerRef.current.stop().catch((err) => {
-                    console.error("Failed to stop QR scanner", err);
-                });
-                html5QrcodeScannerRef.current = null;
-            }
-        };
-    }, [isQRModalOpen, isMediaSupported]);
 
     return (
         isOpen && (
@@ -159,7 +146,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                     >
                         <h2 className="text-xl mb-4">Scanează codul QR</h2>
                         {isMediaSupported ? (
-                            <div id="reader" style={{ width: '100%' }}></div>
+                            <video ref={videoRef} style={{ width: '100%' }} />
                         ) : (
                             <p className="text-red-500">QR scanning is not supported in this browser.</p>
                         )}
