@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import QrReader from 'react-qr-scanner';
-import Modal from 'react-modal';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { app } from '../firebaseconfig';
 import Logout from './logout.jsx';
+import Modal from 'react-modal';
+import { app } from '../firebaseconfig';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import QrReader from 'react-qr-scanner';
 
 const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
@@ -13,7 +13,9 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     const [isMediaSupported, setIsMediaSupported] = useState(true);
 
     useEffect(() => {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        if (typeof navigator.mediaDevices !== 'undefined' && navigator.mediaDevices.getUserMedia) {
+            setIsMediaSupported(true);
+        } else {
             setIsMediaSupported(false);
         }
     }, []);
@@ -31,35 +33,37 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     };
 
     const handleScanQRCode = () => {
-        setIsQRModalOpen(true);
+        if (isMediaSupported) {
+            setIsQRModalOpen(true);
+        } else {
+            alert('QR scanning is not supported in this browser or device.');
+        }
     };
 
-    const handleQRScan = (data) => {
+    const handleScan = (data) => {
         if (data) {
             console.log('Scanned QR code result:', data);
-            setQrResult(data);
+            setQrResult(data.text);
             setIsQRModalOpen(false);
 
             try {
-                const parsedUrl = new URL(data);
+                const parsedUrl = new URL(data.text);
                 if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
                     console.log('Redirecting to:', parsedUrl.href);
                     window.location.assign(parsedUrl.href);
                 } else {
-                    console.log('Scanned data is not a URL:', data);
+                    console.log('Scanned data is not a URL:', data.text);
                     alert('Scanned data is not a URL.');
                 }
             } catch (error) {
-                console.log('Scanned data is not a valid URL:', data);
+                console.log('Scanned data is not a valid URL:', data.text);
                 alert('Scanned data is not a valid URL.');
             }
-        } else {
-            console.log('No data received from QR scanner');
         }
     };
 
-    const handleQRError = (error) => {
-        console.error(error);
+    const handleError = (err) => {
+        console.error('QR Code scanning error:', err);
     };
 
     const handleRedeemSubmit = async () => {
@@ -134,15 +138,15 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                         {isMediaSupported ? (
                             <QrReader
                                 delay={300}
-                                onError={handleQRError}
-                                onScan={handleQRScan}
-                                style={{ width: '100%' }}
+                                onError={handleError}
+                                onScan={handleScan}
+                                style={{ width: '50%' }}
                                 constraints={{
                                     video: { facingMode: { exact: 'environment' } }
                                 }}
                             />
                         ) : (
-                            <p className="text-red-500">QR scanning is not supported in this browser.</p>
+                            <p className="text-red-500">QR scanning is not supported in this browser or device.</p>
                         )}
                         {qrResult && <p className="mt-4">Scanned Result: {qrResult}</p>}
                         <button
@@ -151,7 +155,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                         >
                             Inchide
                         </button>
-                    </Modal>
+                    </Modal>a
                 </div>
             </div>
         )
