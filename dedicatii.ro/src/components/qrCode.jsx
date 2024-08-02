@@ -17,10 +17,12 @@ const QrCode = ({ playlistId, currentSong }) => {
   const generateQRCodeValue = () => {
     if (!playlistId || !currentSong || !uid) return '';
     const currentDomain = window.location.origin;
-    return `${currentDomain}/charlie/${uid}`;
-  };
+    const url = `${currentDomain}/charlie/${uid}`;
+    console.log('Generated QR Code URLs:', url); // Log the generated URL
+    return url;
+};
 
-  const url = generateQRCodeValue();
+const url = generateQRCodeValue();
 
   return (
     <div className="bg-gray-800 p-4 text-center self-center flex justify-center items-center content-center flex-col w-full">
