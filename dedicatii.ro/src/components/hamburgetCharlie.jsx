@@ -140,7 +140,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                                 delay={300}
                                 onError={handleError}
                                 onScan={handleScan}
-                                style={{ width: '50%' }}
+                                style={{ width: '100%' }}
                                 constraints={{
                                     video: { facingMode: { exact: 'environment' } }
                                 }}
