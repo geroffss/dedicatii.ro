@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import Logout from './logout.jsx';
-import Modal from 'react-modal';
-import { app } from '../firebaseconfig';
-import { getFunctions, httpsCallable } from 'firebase/functions';
 import QrReader from 'react-qr-scanner';
+import Modal from 'react-modal';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { app } from '../firebaseconfig';
+import Logout from './logout.jsx';
 
 const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
@@ -13,9 +13,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     const [isMediaSupported, setIsMediaSupported] = useState(true);
 
     useEffect(() => {
-        if (typeof navigator.mediaDevices !== 'undefined' && navigator.mediaDevices.getUserMedia) {
-            setIsMediaSupported(true);
-        } else {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             setIsMediaSupported(false);
         }
     }, []);
@@ -33,37 +31,35 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     };
 
     const handleScanQRCode = () => {
-        if (isMediaSupported) {
-            setIsQRModalOpen(true);
-        } else {
-            alert('QR scanning is not supported in this browser or device.');
-        }
+        setIsQRModalOpen(true);
     };
 
-    const handleScan = (data) => {
+    const handleQRScan = (data) => {
         if (data) {
             console.log('Scanned QR code result:', data);
-            setQrResult(data.text);
+            setQrResult(data);
             setIsQRModalOpen(false);
 
             try {
-                const parsedUrl = new URL(data.text);
+                const parsedUrl = new URL(data);
                 if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
                     console.log('Redirecting to:', parsedUrl.href);
                     window.location.assign(parsedUrl.href);
                 } else {
-                    console.log('Scanned data is not a URL:', data.text);
+                    console.log('Scanned data is not a URL:', data);
                     alert('Scanned data is not a URL.');
                 }
             } catch (error) {
-                console.log('Scanned data is not a valid URL:', data.text);
+                console.log('Scanned data is not a valid URL:', data);
                 alert('Scanned data is not a valid URL.');
             }
+        } else {
+            console.log('No data received from QR scanner');
         }
     };
 
-    const handleError = (err) => {
-        console.error('QR Code scanning error:', err);
+    const handleQRError = (error) => {
+        console.error(error);
     };
 
     const handleRedeemSubmit = async () => {
@@ -138,12 +134,15 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                         {isMediaSupported ? (
                             <QrReader
                                 delay={300}
-                                onError={handleError}
-                                onScan={handleScan}
+                                onError={handleQRError}
+                                onScan={handleQRScan}
                                 style={{ width: '100%' }}
+                                constraints={{
+                                    video: { facingMode: { exact: 'environment' } }
+                                }}
                             />
                         ) : (
-                            <p className="text-red-500">QR scanning is not supported in this browser or device.</p>
+                            <p className="text-red-500">QR scanning is not supported in this browser.</p>
                         )}
                         {qrResult && <p className="mt-4">Scanned Result: {qrResult}</p>}
                         <button

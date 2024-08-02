@@ -48,7 +48,6 @@ const Sidebar = ({ onMenuSelect }) => {
                 </li>
                 <li className="mb-2 flex gap-2 md:hidden text-white">
                     <Logout/>
-                    <p>Logout</p>
                 </li>
             </ul>
         </div>
