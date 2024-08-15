@@ -73,6 +73,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
         try {
             const result = await redeemCodeFunction({ code: redeemCode });
             console.log('Code redeemed successfully:', result.data);
+            alert('Code redeemed successfully!');
         } catch (error) {
             console.error('Error redeeming code:', error);
             window.reload();
@@ -129,34 +130,33 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                         </button>
                     </Modal>
                     <Modal
-                        isOpen={isQRModalOpen}
-                        onRequestClose={() => setIsQRModalOpen(false)}
-                        contentLabel="Scan QR Code Modal"
-                        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 w-full text-center -translate-y-1/2 bg-dedicatii-bg p-4 rounded shadow-lg max-w-md mx-auto z-40 text-white"
-                        overlayClassName="fixed inset-0 bg-black bg-opacity-80 z-40"
-                    >
-                        <h2 className="text-xl mb-4">Scanează codul QR</h2>
-                        {isMediaSupported ? (
-                            <QrReader
-                                delay={300}
-                                onError={handleError}
-                                onScan={handleScan}
-                                style={{ width: '100%' }}
-                                constraints={{
-                                    video: { facingMode: { exact: 'environment' } }
-                                }}
-                            />
-                        ) : (
-                            <p className="text-red-500">QR scanning is not supported in this browser or device.</p>
-                        )}
-                        {qrResult && <p className="mt-4">Scanned Result: {qrResult}</p>}
-                        <button
-                            className="bg-red-500 text-white py-2 px-4 rounded mt-4"
-                            onClick={() => setIsQRModalOpen(false)}
-                        >
-                            Inchide
-                        </button>
-                    </Modal>
+    isOpen={isQRModalOpen}
+    onRequestClose={() => setIsQRModalOpen(false)}
+    contentLabel="Scan QR Code Modal"
+    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 w-full text-center -translate-y-1/2 bg-dedicatii-bg p-4 rounded shadow-lg max-w-md mx-auto z-40 text-white"
+    overlayClassName="fixed inset-0 bg-black bg-opacity-80 z-40"
+>
+    <h2 className="text-xl mb-4">Scanează codul QR</h2>
+    {isMediaSupported ? (
+        <QrReader
+            delay={300}
+            onError={handleError}
+            onScan={handleScan}
+            style={{ width: '100%' }}
+            constraints={{
+                video: { facingMode: { exact: 'environment' } }
+            }}
+        />
+    ) : (
+        <p className="text-red-500">QR scanning is not supported in this browser or device.</p>
+    )}
+    <button
+        className="bg-red-500 text-white py-2 px-4 rounded mt-4"
+        onClick={() => setIsQRModalOpen(false)}
+    >
+        Inchide
+    </button>
+</Modal>
                 </div>
             </div>
         )
