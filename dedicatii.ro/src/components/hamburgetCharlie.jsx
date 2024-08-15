@@ -139,7 +139,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     <h2 className="text-xl mb-4">Scanează codul QR</h2>
     {isMediaSupported ? (
         <QrReader
-            delay={300}
+            delay={10}
             onError={handleError}
             onScan={handleScan}
             style={{ width: '100%' }}
