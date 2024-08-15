@@ -11,7 +11,6 @@ const BotBar = ({ videoDetails }) => {
         />
         <div className="current-song">
           <p><strong></strong> {videoDetails.title}</p>
-          <p><strong></strong> {videoDetails.artist}</p>
         </div>
       </div>
     )

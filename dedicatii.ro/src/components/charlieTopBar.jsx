@@ -56,7 +56,7 @@ const CharlieTopBar = () => {
         <button onClick={toggleMenu}>
           <FontAwesomeIcon icon={faBars} />
         </button>     
-        <HamburgerMenu isOpen={isMenuOpen} toggleMenu={toggleMenu} />
+        <HamburgerMenu isOpen={isMenuOpen} toggleMenu={toggleMenu} selectedMenu />
       </div>
       <div className="absolute left-1/2 transform -translate-x-1/2">
         <img src={logo} alt="" className="h-10" />

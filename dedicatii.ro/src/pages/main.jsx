@@ -3,7 +3,6 @@ import Sidebar from "../components/sidebar";
 import Topbar from "../components/topbar";
 import MainComp from "../components/mainComp";
 import PlayerComponent from "../components/player";
-import QrCode from "../components/qrCode";
 
 const Main = () => {
   const [selectedMenu, setSelectedMenu] = useState("Generate Code");
@@ -18,7 +17,10 @@ const Main = () => {
   return (
     <div className="flex flex-col min-h-screen bg-dedicatii-bg2">
       {/* Topbar */}
-      <Topbar className="" />
+      <Topbar 
+        selectedMenu={selectedMenu} 
+        onMenuSelect={setSelectedMenu}
+      />
 
       <div className="flex flex-1 flex-col md:flex-row mt-14">
         {/* Sidebar */}

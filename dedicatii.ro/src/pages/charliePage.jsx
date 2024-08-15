@@ -205,9 +205,11 @@ const CharliePage = () => {
 
     return (
         <div className="text-center bg-dedicatii-bg2 min-h-screen">
-            <CharlieTopBar />
+                 <div className="fixed top-0 left-0 right-0 z-50">
+                <CharlieTopBar />
+            </div>
 
-            <div className="flex items-center flex-col p-4">
+            <div className="flex items-center flex-col p-4 mt-10">
                 <div className="font-inter w-full text-2xl font-bold text-white">
                     Melodii disponibile
                 </div>

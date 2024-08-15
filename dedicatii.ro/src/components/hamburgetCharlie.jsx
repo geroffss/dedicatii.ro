@@ -156,7 +156,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                         >
                             Inchide
                         </button>
-                    </Modal>a
+                    </Modal>
                 </div>
             </div>
         )
