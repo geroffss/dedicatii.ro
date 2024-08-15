@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CharlieTopBar from '../components/charlieTopBar';
 import Modal from 'react-modal';
-import QrScanner from 'react-qr-scanner';
-import { getDatabase, ref, onValue, update, get, push } from 'firebase/database'; // Added push
+import { getDatabase, ref, onValue, get } from 'firebase/database';
 import { app } from '../firebaseconfig';
 import axios from 'axios';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -19,7 +18,12 @@ const CharliePage = () => {
     const [currentSong, setCurrentSong] = useState(null);
     const [videoDetails, setVideoDetails] = useState(null);
     const [newVideoId, setNewVideoId] = useState('');
-    const [possibleQueue, setPossibleQueue] = useState([]);
+    const [possibleQueue, setPossibleQueue] = useState({});
+    const [filteredQueue, setFilteredQueue] = useState({});
+    const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [selectedVideo, setSelectedVideo] = useState(null);
+    const [credits, setCredits] = useState(0);
+    const [searchTerm, setSearchTerm] = useState(''); // Track search input
 
     useEffect(() => {
         const urlPath = window.location.pathname;
@@ -67,31 +71,62 @@ const CharliePage = () => {
 
     const fetchPossibleQueue = async (uid) => {
         const db = getDatabase(app);
-        const possibleQueueRef = ref(db, `nova/${uid}/possibleQueue`);
+        const possibleQueueRef = ref(db, `categorii/`);
+        let combinedData = {};
     
         try {
             console.log('Fetching possible queue for UID:', uid);
             const snapshot = await get(possibleQueueRef);
-            let data = snapshot.val();
+            const categories = snapshot.val();
     
-            if (!data || Object.keys(data).length === 0) {
-                console.log('No data found, using default values.');
-                data = Array.from({ length: DEFAULT_VIDEO_COUNT }, () => DEFAULT_VIDEO_ID);
+            if (!categories || Object.keys(categories).length === 0) {
+                console.log('No categories found, using default values.');
+                combinedData['Default'] = Array.from({ length: DEFAULT_VIDEO_COUNT }, () => DEFAULT_VIDEO_ID);
             } else {
-                console.log('Data found:', data);
-                data = Object.values(data);
+                console.log('Categories found:', categories);
+    
+                for (const category in categories) {
+                    if (categories.hasOwnProperty(category)) {
+                        const subitems = categories[category];
+                        if (subitems && Array.isArray(subitems) && subitems.length > 0) {
+                            combinedData[category] = subitems;
+                        } else {
+                            console.log(`No subitems found for category: ${category}`);
+                        }
+                    }
+                }
             }
     
-            const details = await Promise.all(data.map(id => fetchVideoDetails(id)));
-            const filteredDetails = details.filter(video => video !== null);
+            if (Object.keys(combinedData).length === 0) {
+                console.log('No data found in any category, using default values.');
+                combinedData['Default'] = Array.from({ length: DEFAULT_VIDEO_COUNT }, () => DEFAULT_VIDEO_ID);
+            } else {
+                console.log('Combined Data:', combinedData);
+            }
     
-            if (filteredDetails.length === 0) {
+            const detailsPromises = [];
+            for (const category in combinedData) {
+                if (combinedData.hasOwnProperty(category)) {
+                    detailsPromises.push(
+                        Promise.all(combinedData[category].map(id => fetchVideoDetails(id)))
+                    );
+                }
+            }
+    
+            const detailsResults = await Promise.all(detailsPromises);
+            const filteredDetails = {};
+            Object.keys(combinedData).forEach((category, index) => {
+                filteredDetails[category] = detailsResults[index].filter(video => video !== null);
+            });
+    
+            if (Object.values(filteredDetails).flat().length === 0) {
                 console.log('No valid video details found in the possible queue.');
             } else {
                 console.log('Filtered Possible Queue Details:', filteredDetails);
             }
     
             setPossibleQueue(filteredDetails);
+            setFilteredQueue(filteredDetails); // Initialize the filteredQueue with the full possibleQueue
         } catch (error) {
             console.error('Error fetching possible queue:', error);
         }
@@ -137,69 +172,138 @@ const CharliePage = () => {
             console.log(videoId)
             console.log('Video added to queue successfully:', result.data);
             alert('Melodia a fost adăugată cu succes în coadă!');   
+            setModalIsOpen(false);
         } catch (error) {
             console.error('Error adding video to queue:', error);
+            alert('Nu ai suficiente credite pentru a adăuga această melodie în coadă.');
         }
     };
 
-    return (
-        <div className="text-center bg-dedicatii-bg2">
-                    <CharlieTopBar />
+    const openDedicateModal = (video) => {
+        setSelectedVideo(video);
+        setModalIsOpen(true);
+    };
 
-        <div className="flex items-center flex-col p-4">
-        <div
-            className="font-inter w-full text-2xl font-bold text-white"
-            >
-            Melodii disponibile
-        </div>
-         <div className="bg-t-bg-rectangle-14tvector-caut-omelodie z-0 flex flex-grow items-center self-stretch bg-cover bg-center py-2 px-4 text-left justify-center"
-            >
-            <div className="z-2 flex items-center justify-center w-3/2 bg-white bg-opacity-10 rounded-2xl px-4">
-                <FontAwesomeIcon icon={faSearch} className="text-white" />
-                <input
-                className="font-inter text-center flex min-w-0 flex-grow text-xl leading-normal tracking-normal text-white placeholder:text-white bg-transparent"
-                placeholder="Caută o melodie"
-                type="text"
-                />
-            </div>
-            </div>
-            {possibleQueue.length > 0 && (
-            <div className="possible-queue p-4 rounded-[5px] mb-10">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {possibleQueue.map((video, index) => (
-                    video ? (
-                    <div 
-                        key={video.id + index} 
-                        className="font-inter flex flex-col items-center justify-between gap-y-[5px] rounded-[5px] bg-[#dcdcdc19] pb-2.5 pl-[17px] pr-4 pt-[15px] text-center leading-[normal] tracking-[0px] text-white shadow-md hover:shadow-lg transition-shadow duration-300"
-                    >
-                        <aside className="flex h-32 w-32 flex-shrink-0 flex-col items-center pr-0.5">
-                        <img 
-                            src={video.thumbnail} 
-                            alt={video.title} 
-                            className="h-32 w-32 flex-shrink-0 rounded-[5px] object-cover object-center text-center mb-4" 
-                            loading="lazy"
+    const handleSearch = (event) => {
+        const searchQuery = event.target.value.toLowerCase();
+        setSearchTerm(searchQuery);
+
+        const filteredResults = {};
+
+        Object.keys(possibleQueue).forEach((category) => {
+            const filteredVideos = possibleQueue[category].filter((video) =>
+                video.title.toLowerCase().includes(searchQuery)
+            );
+
+            if (filteredVideos.length > 0) {
+                filteredResults[category] = filteredVideos;
+            }
+        });
+
+        setFilteredQueue(filteredResults);
+    };
+
+    return (
+        <div className="text-center bg-dedicatii-bg2 min-h-screen">
+            <CharlieTopBar />
+
+            <div className="flex items-center flex-col p-4">
+                <div className="font-inter w-full text-2xl font-bold text-white">
+                    Melodii disponibile
+                </div>
+
+                <div className="bg-t-bg-rectangle-14tvector-caut-omelodie z-0 flex items-center w-full bg-cover bg-center py-2 px-4 text-left justify-center">
+                    <div className="z-2 flex items-center justify-center w-full bg-white bg-opacity-10 rounded-2xl px-4">
+                        <FontAwesomeIcon icon={faSearch} className="text-white" />
+                        <input
+                            className="font-inter text-center flex min-w-0 flex-grow text-xl text-white placeholder:text-white bg-transparent"
+                            placeholder="Caută o melodie"
+                            type="text"
+                            value={searchTerm} // Bind searchTerm to the input field
+                            onChange={handleSearch} // Call handleSearch on input change
                         />
-                        </aside>
-                        <div className="flex flex-col items-center">
-                        <h2 className="self-stretch pt-2 font-medium">{video.title}</h2>
-                        <div className="font-light">{video.artist}</div>
-                        </div>
-                        <button 
-                        className="bg-dedicatii-button3 text-white py-2 px-4 rounded mt-4 w-full transition-colors duration-300"
-                        onClick={() => {
-                            console.log(video.id);
-                            addVideoToQueue(video.id);
-                        }}
-                        >
-                        Dedică
-                        </button>
                     </div>
-                    ) : null
-                ))}
-          </div>
-        </div>
-        )}
-        </div>
+                </div>
+
+                <div className="possible-queue rounded-[5px] mb-10 w-full">
+                    {Object.keys(filteredQueue).length > 0 && (
+                        <div className="possible-queue p-4 rounded-[5px] mb-10">
+                            {Object.keys(filteredQueue).map((category, catIndex) => (
+                                <div key={catIndex} className="mb-8 w-full">
+                                    <h2 className="text-xl font-bold mb-4 text-white">
+                                        {category}
+                                    </h2>
+
+                                    {/* Horizontal scrolling container */}
+                                    <div className="overflow-x-auto scrollbar-hide pb-2 w-full">
+                                        <div className="flex gap-4 w-max">
+                                            {filteredQueue[category].map((video, index) =>
+                                                video ? (
+                                                    <div
+                                                        key={video.id + index}
+                                                        className="font-inter flex flex-col items-center justify-between gap-y-2 rounded bg-gray-800 p-4 text-center text-white shadow-md hover:shadow-lg transition-shadow duration-300 min-w-[200px] w-[200px] h-[200px]"
+                                                    >
+                                                        <aside className="flex h-24 w-24 flex-shrink-0 flex-col items-center">
+                                                            <img
+                                                                src={video.thumbnail}
+                                                                alt={video.title}
+                                                                className="h-24 w-24 flex-shrink-0 rounded-full object-cover object-center"
+                                                                loading="lazy"
+                                                                onClick={() => openDedicateModal(video)}
+                                                            />
+                                                        </aside>
+                                                        <div className="flex flex-col items-center">
+                                                            <h2 className="self-stretch font-medium text-sm">
+                                                                {video.title}
+                                                            </h2>
+                                                        </div>
+                                                        <button
+                                                            className="bg-dedicatii-button3 text-white hidden py-2 px-4 rounded-lg mt-2 w-full transition-colors duration-300"
+                                                            onClick={() => openDedicateModal(video)}
+                                                        >
+                                                            Dedică
+                                                        </button>
+                                                    </div>
+                                                ) : null
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <Modal
+                isOpen={modalIsOpen}
+                onRequestClose={() => setModalIsOpen(false)}
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 w-full text-center -translate-y-1/2 bg-dedicatii-bg p-4 rounded shadow-lg max-w-md mx-auto z-40 text-white"
+                overlayClassName="fixed inset-0 bg-black bg-opacity-80 z-40"
+            >
+                {selectedVideo && (
+                    <div className="text-center">
+                        <h2 className="text-2xl font-semibold mb-4">
+                            {selectedVideo.title}
+                        </h2>
+                        <p>Acest video costă 1 credit.</p>
+                        <div className="flex gap-4 justify-center">
+                            <button
+                                className="bg-dedicatii-button3 text-white py-2 px-4 rounded mt-4"
+                                onClick={() => addVideoToQueue(selectedVideo.id)}
+                            >
+                                Confirmă
+                            </button>
+                            <button
+                                className="bg-dedicatii-button1 text-white py-2 px-4 rounded mt-4"
+                                onClick={() => setModalIsOpen(false)}
+                            >
+                                Anulează
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
 
             <BotBar videoDetails={videoDetails} />
         </div>
