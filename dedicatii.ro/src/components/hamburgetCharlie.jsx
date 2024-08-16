@@ -11,9 +11,12 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     const [qrResult, setQrResult] = useState('');
     const [redeemCode, setRedeemCode] = useState('');
     const [isMediaSupported, setIsMediaSupported] = useState(true);
+    const [redeemMessage, setRedeemMessage] = useState(null);
+    const [messageType, setMessageType] = useState(null); // 'success' or 'error'
+    const [qrError, setQrError] = useState('');
 
     useEffect(() => {
-        if (typeof navigator.mediaDevices !== 'undefined' && navigator.mediaDevices.getUserMedia) {
+        if (navigator?.mediaDevices?.getUserMedia) {
             setIsMediaSupported(true);
         } else {
             setIsMediaSupported(false);
@@ -25,10 +28,12 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     }, [isRedeemModalOpen, isQRModalOpen]);
 
     const handleRedeemCode = () => {
+        setRedeemMessage(null);  // Reset message when opening modal
         setIsRedeemModalOpen(true);
     };
 
     const handleScanQRCode = () => {
+        setQrError('');
         if (isMediaSupported) {
             setIsQRModalOpen(true);
         } else {
@@ -38,45 +43,63 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
 
     const handleScan = (data) => {
         if (data) {
-            console.log('Scanned QR code result:', data.text);
             setQrResult(data.text);
             setIsQRModalOpen(false);
 
             try {
                 const parsedUrl = new URL(data.text);
                 if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
-                    console.log('Redirecting to:', parsedUrl.href);
                     window.location.assign(parsedUrl.href);
                 } else {
-                    console.log('Scanned data is not a URL:', data.text);
-                    alert('Scanned data is not a URL.');
+                    setQrError('Scanned data is not a valid URL.');
                 }
             } catch (error) {
-                console.log('Scanned data is not a valid URL:', data.text);
-                alert('Scanned data is not a valid URL.');
+                setQrError('Scanned data is not a valid URL.');
             }
         }
     };
 
     const handleError = (err) => {
+        setQrError('Error scanning QR code.');
         console.error('QR Code scanning error:', err);
     };
 
     const handleRedeemSubmit = async () => {
         const functions = getFunctions(app, 'europe-central2');
         const redeemCodeFunction = httpsCallable(functions, 'redeemCode');
-
+    
         try {
             const result = await redeemCodeFunction({ code: redeemCode });
-            console.log('Code redeemed successfully:', result.data);
-            alert('Code redeemed successfully!');
+    
+            // Log the result to check its structure
+            console.log('Redeem code result:', result);
+    
+            // Check if result.data is true or an object
+            if (result.data === true) {
+                // Valid code
+                setRedeemMessage('Codul a fost activat cu succes!');
+                setMessageType('success');
+            } else if (result.data.valid === false) {
+                // Invalid code
+                setRedeemMessage(result.data.message || 'Codul este invalid sau a expirat. Vă rugăm să încercați din nou.');
+                setMessageType('error');
+            } else {
+                // Unexpected response
+                setRedeemMessage('Codul este invalid sau a expirat. Vă rugăm să încercați din nou.');
+                setMessageType('error');
+            }
+    
+            // Clear the code input field
+            setRedeemCode('');
+    
         } catch (error) {
             console.error('Error redeeming code:', error);
-            window.location.reload();
+            setRedeemMessage('Eroare la activarea codului, vă rugăm să încercați din nou.');
+            setMessageType('error');
         }
-
-        setIsRedeemModalOpen(false);
     };
+    
+    
 
     return (
         isOpen && (
@@ -103,28 +126,43 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                             <Logout />
                         </div>
                     </div>
-                    <Modal
-                        isOpen={isRedeemModalOpen}
-                        onRequestClose={() => setIsRedeemModalOpen(false)}
-                        contentLabel="Redeem Code Modal"
-                        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 w-full text-center -translate-y-1/2 bg-dedicatii-bg p-4 rounded shadow-lg max-w-md mx-auto z-40 text-white"
-                        overlayClassName="fixed inset-0 bg-black bg-opacity-80 z-40"
+                    
+                     <Modal
+                    isOpen={isRedeemModalOpen}
+                    onRequestClose={() => setIsRedeemModalOpen(false)}
+                    contentLabel="Redeem Code Modal"
+                    className="absolute top-1/2 left-1/2  transform -translate-x-1/2 w-full text-center -translate-y-1/2 bg-dedicatii-bg p-4 rounded shadow-lg max-w-md mx-auto z-40 text-white"
+                    overlayClassName="fixed inset-0 bg-black bg-opacity-80 z-40"
+                >
+                    <h2 className="text-xl mb-4">Adaugă cod</h2>
+                    <input
+                        type="text"
+                        placeholder="Adaugă codul..."
+                        className="border p-2 w-full mb-4 rounded-lg text-black"
+                        value={redeemCode}
+                        onChange={(e) => setRedeemCode(e.target.value)}
+                    />
+                    <div className="flex flex-row gap-4 justify-center items-center self-center">
+                    <button
+                        className="bg-dedicatii-button3 text-white py-2 px-4 rounded-lg"
+                        onClick={handleRedeemSubmit}
                     >
-                        <h2 className="text-xl mb-4">Adaugă cod</h2>
-                        <input
-                            type="text"
-                            placeholder="Adaugă codul..."
-                            className="border p-2 w-full mb-4 rounded-lg text-black"
-                            value={redeemCode}
-                            onChange={(e) => setRedeemCode(e.target.value)}
-                        />
-                        <button
-                            className="bg-dedicatii-button3 text-white py-2 px-4 rounded-lg"
-                            onClick={handleRedeemSubmit}
-                        >
-                            Activează codul
-                        </button>
-                    </Modal>
+                        Activează codul
+                    </button>
+                    {redeemMessage && (
+                        <p className={`mt-4 ${messageType === 'success' ? 'text-green-400' : 'text-red-500'}`}>{redeemMessage}</p>
+                    )}
+                    <button
+                        className="bg-red-500 text-white py-2 px-4 rounded-lg"
+                        onClick={() => setIsRedeemModalOpen(false)}
+                    >
+                        Inchide
+                    </button>
+                    </div>
+              
+                </Modal>
+
+                    {/* QR Code Scanner Modal */}
                     <Modal
                         isOpen={isQRModalOpen}
                         onRequestClose={() => setIsQRModalOpen(false)}
@@ -134,15 +172,18 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                     >
                         <h2 className="text-xl mb-4">Scanează codul QR</h2>
                         {isMediaSupported ? (
-                            <QrReader
-                                delay={300} // Adjust the delay as needed
-                                onError={handleError}
-                                onScan={handleScan}
-                                style={{ width: '100%' }}
-                                constraints={{
-                                    video: { facingMode: 'environment' }
-                                }}
-                            />
+                            <>
+                                <QrReader
+                                    delay={300}
+                                    onError={handleError}
+                                    onScan={handleScan}
+                                    style={{ width: '100%' }}
+                                    constraints={{
+                                        video: { facingMode: 'environment' },
+                                    }}
+                                />
+                                {qrError && <p className="mt-4 text-red-500">{qrError}</p>}
+                            </>
                         ) : (
                             <p className="text-red-500">QR scanning is not supported in this browser or device.</p>
                         )}

@@ -37,7 +37,7 @@ const HamburgerMenu2 = ({ isOpen, toggleMenu, onMenuSelect }) => {
                   className="text-white hover:text-gray-900 focus:outline-none"
                   onClick={() => handleMenuSelect("QR Code")}
                 >
-                  QR Code
+                  Cod QR
                 </button>
               </li>
               <li className="mb-2">
@@ -45,10 +45,10 @@ const HamburgerMenu2 = ({ isOpen, toggleMenu, onMenuSelect }) => {
                   className="text-white hover:text-gray-900 focus:outline-none"
                   onClick={() => handleMenuSelect("Generate Code")}
                 >
-                  Generate Code
+                  Gerenerare Cod
                 </button>
               </li>
-              <li className="mb-2">
+              <li className="mb-2 hidden">
                 <button 
                   className="text-white hover:text-gray-900 focus:outline-none"
                   onClick={() => handleMenuSelect("Last Purchases")}
@@ -61,7 +61,7 @@ const HamburgerMenu2 = ({ isOpen, toggleMenu, onMenuSelect }) => {
                   className="text-white hover:text-gray-900 focus:outline-none"
                   onClick={() => handleMenuSelect("Possible Queue")}
                 >
-                  Possible Queue
+                  Adaugă Piese
                 </button>
               </li>
               <li className="mb-2 flex gap-2 md:hidden text-white">

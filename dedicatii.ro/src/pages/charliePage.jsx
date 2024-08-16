@@ -209,7 +209,7 @@ const CharliePage = () => {
                 <CharlieTopBar />
             </div>
 
-            <div className="flex items-center flex-col p-4 mt-10">
+            <div className="flex items-center flex-col p-4 mt-10 pt-5">
                 <div className="font-inter w-full text-2xl font-bold text-white">
                     Melodii disponibile
                 </div>
