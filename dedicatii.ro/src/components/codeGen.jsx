@@ -5,8 +5,6 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 const CodeGen = () => {
     const [user, setUser] = useState(null);
     const [generatedCode, setGeneratedCode] = useState('');
-    const [codeToCheck, setCodeToCheck] = useState('');
-    const [checkResult, setCheckResult] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [timeLeft, setTimeLeft] = useState(null);
@@ -70,31 +68,6 @@ const CodeGen = () => {
         return () => clearTimeout(timer); // Cleanup timer on component unmount or when timeLeft changes
     }, [timeLeft]);
 
-    const checkCode = async () => {
-        if (!user) {
-            console.error('User is not logged in');
-            return;
-        }
-
-        setLoading(true);
-        setError('');
-        try {
-            const functions = getFunctions(undefined, 'europe-central2');
-            const checkCodeFunction = httpsCallable(functions, 'checkCode');
-            const result = await checkCodeFunction({ code: codeToCheck });
-
-            if (result.data.valid) {
-                setCheckResult(`Code is valid. Song count: ${result.data.count}`);
-            } else {
-                setCheckResult('Code is invalid.');
-            }
-        } catch (error) {
-            console.error('Error checking code:', error);
-            setError(error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     return (
         <div className="code-gen-container items-center font-inter flex flex-col md:flex-row gap-5 text-center font-medium rounded-lg leading-normal tracking-[0px] bg-dedicatii-bg3 text-white p-6 shadow-2xl">
@@ -118,7 +91,7 @@ const CodeGen = () => {
                     >
                         <div className="flex w-36 flex-shrink-0 flex-col justify-center pb-0.5 text-center">
                             <div className="flex items-center justify-center text-white">
-                                <h2 className="text-center">{loading ? 'Se genereaza...' : 'Genereaza cod'}</h2>
+                                <h2 className="text-center">{loading ? 'Se generează...' : 'Generează cod'}</h2>
                             </div>
                         </div>
                     </button>

@@ -191,20 +191,21 @@ const PlayerComponent = ({ onSongChange }) => {
       <h2 className="text-3xl font-bold mb-6 text-center">Now Playing</h2>
       <div className="flex flex-col md:flex-row">
       <div className="font-inter flex flex-col md:flex-row w-full items-center justify-center gap-5 rounded-lg pb-2 pt-2 text-center text-base text-white mb-6 md:mb-0">
-  <div className="bg-dedicatii-bg3 flex flex-col items-center justify-center text-center p-4 rounded-lg flex-shrink-0">
-    <img
-      src={currentThumbnail}
-      alt="Album Art"
-      className="h-52 w-52 rounded-lg object-cover shadow-2xl"
-      style={{ objectFit: 'cover' }}
-    />
-    <div className="pt-3 font-medium w-full">
-      <h3 className="text-2xl font-semibold">{currentTitle}</h3>
-    </div>
-    <div className="font-light">{currentArtist}</div>
+      <div className="bg-dedicatii-bg3 flex flex-col items-center justify-center text-center p-2 md:p-4 rounded-lg flex-shrink-0 w-full md:w-1/2">
+  <img
+    src={currentThumbnail}
+    alt="Album Art"
+    className="h-32 w-32 md:h-52 md:w-52 rounded-lg object-cover shadow-2xl"
+    style={{ objectFit: 'cover' }}
+  />
+  <div className="pt-2 md:pt-3 font-medium w-full">
+    <h3 className="text-lg md:text-2xl font-semibold">{currentTitle}</h3>
   </div>
+  <div className="text-sm md:text-base font-light">{currentArtist}</div>
+</div>
+
   <div className="md:w-1/2 w-full flex flex-col items-center">
-    <ul className="playlist bg-dedicatii-bg3 h-32 md:h-72 p-4 rounded-lg overflow-y-auto w-full">
+    <ul className="playlist bg-dedicatii-bg3 h-80 md:h-72 p-4 rounded-lg overflow-y-auto w-full">
       {playlist.map((item, index) => (
         <li
           key={index}

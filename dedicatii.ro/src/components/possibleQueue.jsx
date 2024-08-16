@@ -26,25 +26,25 @@ const PossibleQueue = () => {
             }
             await update(possibleQueueRef, { [nextIndex]: videoId });
     
-            console.log('Video added to possibleQueue successfully.');
+            console.log('Muzica a fost adaugată cu succes in coada posibilă!');
         } catch (error) {
             console.error('Error adding video to possibleQueue:', error);
         }
     };
     return (
-        <div>
+        <div className="flex flex-col items-center justify-center self-center">
                <input 
                     type="text" 
-                    placeholder="Enter video ID for possible queue" 
-                    className="border p-2 mb-4 w-1/2 mx-auto"
+                    placeholder="Introduce ID-ul videoclipului..." 
+                    className="border p-2 mb-4 w-1/2 mx-auto rounded-lg "
                     value={newPossibleQueueVideoId}
                     onChange={(e) => setNewPossibleQueueVideoId(e.target.value)}
                 />
                 <button 
-                    className="bg-purple-500 text-white py-2 px-4 rounded mb-4"
+                    className="bg-purple-500 text-white py-2 px-4 rounded-lg mb-4"
                     onClick={() => addVideoToPossibleQueue(newPossibleQueueVideoId)}
                 >
-                    Add to Possible Queue
+                    Adaugă Piesă
                 </button>
         </div>
     );

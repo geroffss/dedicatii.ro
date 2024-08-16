@@ -25,22 +25,20 @@ const QrCode = () => {
   }, [uid]);
 
   return (
-    <div className="bg-gray-800 p-4 text-center flex justify-center items-center flex-col w-full">
-      <h1 className="text-white text-lg mb-4">QR Code</h1>
+    <div className="p-4 text-center flex justify-center items-center flex-col w-full">
       <button
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+        className="bg-dedicatii-button3 text-white px-4 py-2 rounded-lg mb-4"
         onClick={generateQRCodeValue}
       >
-        Generate QR Code
+        Generare cod QR...
       </button>
       <div id="qr-code" className="qr-code-container">
         {qrCodeUrl ? (
           <img src={qrCodeUrl} alt="QR Code" />
         ) : (
-          <p className="text-white">Click the button to generate QR Code...</p>
+          <p className="hidden">Apasă butonul pentru a genera codul QR.</p>
         )}
       </div>
-      <p className="text-white mt-4">Scan to view the playlist and current song</p>
     </div>
   );
 };
