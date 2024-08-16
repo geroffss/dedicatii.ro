@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useCallback } from "react";
-import QRCodeStyling from "qr-code-styling";
 import { getAuth } from "firebase/auth";
 import { app } from "../firebaseconfig";
 
 const QrCode = () => {
   const [uid, setUid] = useState(null);
-  const [url, setUrl] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
     const auth = getAuth(app);
@@ -19,38 +18,11 @@ const QrCode = () => {
     if (uid) {
       const currentDomain = window.location.origin;
       const url = `${currentDomain}/charlie/${uid}`;
-      setUrl(url);
+      const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(url)}&size=256x256`;
+
+      setQrCodeUrl(qrCodeApiUrl);
     }
   }, [uid]);
-
-  useEffect(() => {
-    if (!url) return;
-
-    const qrCodeInstance = new QRCodeStyling({
-      width: 256,
-      height: 256,
-      data: url,
-      image: null,
-      dotsOptions: {
-        color: "#000",
-      },
-      backgroundOptions: {
-        color: "#fff",
-      },
-    });
-
-    const qrCodeContainer = document.getElementById("qr-code");
-    if (qrCodeContainer) {
-      qrCodeContainer.innerHTML = ""; // Clear previous QR code
-      qrCodeInstance.append(qrCodeContainer);
-    }
-
-    return () => {
-      if (qrCodeContainer) {
-        qrCodeContainer.innerHTML = "";
-      }
-    };
-  }, [url]);
 
   return (
     <div className="bg-gray-800 p-4 text-center flex justify-center items-center flex-col w-full">
@@ -62,7 +34,11 @@ const QrCode = () => {
         Generate QR Code
       </button>
       <div id="qr-code" className="qr-code-container">
-        {!url && <p className="text-white">Generating QR Code...</p>}
+        {qrCodeUrl ? (
+          <img src={qrCodeUrl} alt="QR Code" />
+        ) : (
+          <p className="text-white">Click the button to generate QR Code...</p>
+        )}
       </div>
       <p className="text-white mt-4">Scan to view the playlist and current song</p>
     </div>
