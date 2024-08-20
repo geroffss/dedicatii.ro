@@ -89,7 +89,9 @@ const PlayerComponent = ({ onSongChange }) => {
             });
 
             const videoData = response.data.items[0];
-            setCurrentTitle(videoData.snippet.title.split(' - ')[1]);
+            const rawTitle = videoData.snippet.title.split(' - ')[1];
+            const cleanedTitle = rawTitle.replace(/official video|music video|lyrics|official music video/gi, '').trim();
+            setCurrentTitle(cleanedTitle);         
             setCurrentArtist(videoData.snippet.channelTitle);
             setCurrentThumbnail(videoData.snippet.thumbnails.default.url);
           } else {

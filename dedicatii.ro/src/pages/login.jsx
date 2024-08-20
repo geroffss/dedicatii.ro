@@ -7,35 +7,36 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 
 const Login = () => {
-  const handleGoogleSignIn = async () => {
-      try {
-          const result = await signInWithPopup(auth, provider);
-          const credential = GoogleAuthProvider.credentialFromResult(result);
-          const token = credential.accessToken;
-          const user = result.user;
-          console.log('User Info:', user);
-  
-          const db = getFirestore();
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userDocRef);
-  
-          if (!userDoc.exists()) {
-              await setDoc(userDocRef, {
-                  role: 'charlie'
-              });
-              window.location.href = '/charlie';
-          } else {
-              const userData = userDoc.data();
-              if (userData.role === 'charlie') {
-                  window.location.href = '/charlie';
-              } else if (userData.role === 'nova') {
-                  window.location.href = '/main';
-              }
-          }
-      } catch (error) {
-          console.error('Error during sign-in:', error);
-      }
-  };
+    const handleGoogleSignIn = async () => {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            const token = credential.accessToken;
+            const user = result.user;
+            console.log('User Info:', user);
+    
+            const db = getFirestore();
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userDocRef);
+    
+            if (!userDoc.exists()) {
+                await setDoc(userDocRef, {
+                    role: 'charlie',
+                    email: user.email
+                });
+                window.location.href = '/charlie';
+            } else {
+                const userData = userDoc.data();
+                if (userData.role === 'charlie') {
+                    window.location.href = '/charlie';
+                } else if (userData.role === 'nova') {
+                    window.location.href = '/main';
+                }
+            }
+        } catch (error) {
+            console.error('Error during sign-in:', error);
+        }
+    };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-bl from-[#a856eb] via-[#d64061] to-[#211624]">
