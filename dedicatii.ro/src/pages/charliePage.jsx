@@ -71,16 +71,13 @@ const CharliePage = () => {
 
     const fetchPossibleQueue = async (uid) => {
         const db = getDatabase(app);
-        // const possibleQueueRef = ref(db, `categoriiSimple/`);
-        const possibleQueueRef = ref(db, `categorii/`);
+        const possibleQueueRef = ref(db, `categoriiSimple/`);
         let combinedData = {};
     
         try {
             console.log('Fetching possible queue for UID:', uid);
             const snapshot = await get(possibleQueueRef);
             const categories = snapshot.val();
-    
-            console.log(categories, 'categories');
 
             if (!categories || Object.keys(categories).length === 0) {
                 console.log('No categories found, using default values.');
@@ -88,16 +85,10 @@ const CharliePage = () => {
             } else {
                 console.log('Categories found:', categories);
     
-                for (const category in categories) {
-                    if (categories.hasOwnProperty(category)) {
-                        const subitems = categories[category];
-                        if (subitems && Array.isArray(subitems) && subitems.length > 0) {
-                            combinedData[category] = subitems;
-                        } else {
-                            console.log(`No subitems found for category: ${category}`);
-                        }
-                    }
-                }
+                Object.entries(categories).forEach((category) => {
+                    combinedData[category[0]] = [];
+                    combinedData[category[0]].push(...Object.values(category[1]));
+                })
             }
     
             if (Object.keys(combinedData).length === 0) {
@@ -106,30 +97,8 @@ const CharliePage = () => {
             } else {
                 console.log('Combined Data:', combinedData);
             }
-    
-            const detailsPromises = [];
-            for (const category in combinedData) {
-                if (combinedData.hasOwnProperty(category)) {
-                    detailsPromises.push(
-                        Promise.all(combinedData[category].map(id => fetchVideoDetails(id)))
-                    );
-                }
-            }
-    
-            const detailsResults = await Promise.all(detailsPromises);
-            const filteredDetails = {};
-            Object.keys(combinedData).forEach((category, index) => {
-                filteredDetails[category] = detailsResults[index].filter(video => video !== null);
-            });
-    
-            if (Object.values(filteredDetails).flat().length === 0) {
-                console.log('No valid video details found in the possible queue.');
-            } else {
-                console.log('Filtered Possible Queue Details:', filteredDetails);
-            }
-    
-            setPossibleQueue(filteredDetails);
-            setFilteredQueue(filteredDetails); // Initialize the filteredQueue with the full possibleQueue
+            setPossibleQueue(combinedData);
+            setFilteredQueue(combinedData); // Initialize the filteredQueue with the full possibleQueue
         } catch (error) {
             console.error('Error fetching possible queue:', error);
         }
@@ -233,8 +202,9 @@ const CharliePage = () => {
                 <div className="possible-queue rounded-[5px] mb-10 w-full">
                     {Object.keys(filteredQueue).length > 0 && (
                         <div className="possible-queue p-4 rounded-[5px] mb-10">
+                            {console.log(Object.keys(filteredQueue), 'HERE')}
                             {Object.keys(filteredQueue).map((category, catIndex) => (
-                                <div key={catIndex} className="mb-8 w-full">
+                                <div key={category + catIndex} className="mb-8 w-full">
                                     <h2 className="text-xl font-bold mb-4 text-white">
                                         {category}
                                     </h2>
@@ -245,7 +215,7 @@ const CharliePage = () => {
                                             {filteredQueue[category].map((video, index) =>
                                                 video ? (
                                                     <div
-                                                        key={video.id + index}
+                                                        key={video.title + index}
                                                         className="font-inter flex flex-col items-center gap-y-2 rounded bg-gray-800 bg-[#D9D9D9] bg-opacity-10 py-2 text-center text-white shadow-md hover:shadow-lg transition-shadow duration-300 w-[158px] h-[252px]"
                                                     >
                                                         <aside className="flex h-[125px] w-full flex-shrink-0 flex-col items-center">
