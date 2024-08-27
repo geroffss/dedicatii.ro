@@ -6,7 +6,7 @@ import { faBackward, faPlay, faPause, faForward } from '@fortawesome/free-solid-
 import { auth, database } from '../firebaseconfig';
 import { ref, get, set, remove } from 'firebase/database';
 
-const API_KEY = 'AIzaSyAVaymp99OZmRWQ8ddDfGURCuvK__Qk-yc';
+const API_KEY = 'AIzaSyDbmgasA-HpdTpzpR0NyG2viXY_A7WlAE0';
 
 const PlayerComponent = ({ onSongChange }) => {
   const [playlist, setPlaylist] = useState([]);
