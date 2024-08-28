@@ -8,10 +8,20 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import BotBar from '../components/botbar';
+import toast, { Toaster } from 'react-hot-toast';
 
 const API_KEY = 'AIzaSyDbmgasA-HpdTpzpR0NyG2viXY_A7WlAE0';
 const DEFAULT_VIDEO_ID = 'C27NShgTQE';
 const DEFAULT_VIDEO_COUNT = 10;
+
+export const toastStyle = {
+    style: {
+        borderRadius: '10px',
+        background: '#333',
+        color: '#fff',
+        marginBottom: '84px',
+    }
+}
 
 const CharliePage = () => {
     const [playlist, setPlaylist] = useState([]);
@@ -140,14 +150,18 @@ const CharliePage = () => {
     
         try {
             const addToSongQueue = httpsCallable(functions, 'addToSongQueue');
-            const result = await addToSongQueue({ novaID: uid, songID: videoId });
-            console.log(videoId)
-            console.log('Video added to queue successfully:', result.data);
-            alert('Melodia a fost adăugată cu succes în coadă!');   
+            toast.promise(
+                addToSongQueue({ novaID: uid, songID: videoId }),
+                    {
+                    loading: 'Se adaugă în coadă...',
+                    success: <b>Melodia a fost adăugată cu succes în coadă!</b>,
+                    error: <b>Nu ai suficiente credite pentru a adăuga această melodie în coadă.</b>,
+                    }, toastStyle
+                );
             setModalIsOpen(false);
         } catch (error) {
+            toast.error('Nu ai suficiente credite pentru a adăuga această melodie în coadă.');
             console.error('Error adding video to queue:', error);
-            alert('Nu ai suficiente credite pentru a adăuga această melodie în coadă.');
         }
     };
 
@@ -202,7 +216,6 @@ const CharliePage = () => {
                 <div className="possible-queue rounded-[5px] mb-10 w-full">
                     {Object.keys(filteredQueue).length > 0 && (
                         <div className="possible-queue p-4 rounded-[5px] mb-10">
-                            {console.log(Object.keys(filteredQueue), 'HERE')}
                             {Object.keys(filteredQueue).map((category, catIndex) => (
                                 <div key={category + catIndex} className="mb-8 w-full">
                                     <h2 className="text-xl font-bold mb-4 text-white">
@@ -216,7 +229,7 @@ const CharliePage = () => {
                                                 video ? (
                                                     <div
                                                         key={video.title + index}
-                                                        className="font-inter flex flex-col items-center gap-y-2 rounded bg-gray-800 bg-[#D9D9D9] bg-opacity-10 py-2 text-center text-white shadow-md hover:shadow-lg transition-shadow duration-300 w-[158px] h-[252px]"
+                                                        className="font-inter flex flex-col items-center gap-y-2 rounded bg-[#D9D9D9] bg-opacity-10 py-2 text-center text-white shadow-md hover:shadow-lg transition-shadow duration-300 w-[158px] h-[252px]"
                                                     >
                                                         <aside className="flex h-[125px] w-full flex-shrink-0 flex-col items-center">
                                                             <img
@@ -286,6 +299,11 @@ const CharliePage = () => {
             </Modal>
 
             <BotBar videoDetails={videoDetails} />
+
+            <Toaster
+                position="bottom-center"
+                reverseOrder={false}
+            />
         </div>
     );
 };
