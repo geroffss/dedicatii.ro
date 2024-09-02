@@ -9,6 +9,8 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import BotBar from '../components/botbar';
 import toast, { Toaster } from 'react-hot-toast';
+import { PlayingNow } from '../components/playingNow';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const API_KEY = 'AIzaSyDbmgasA-HpdTpzpR0NyG2viXY_A7WlAE0';
 const DEFAULT_VIDEO_ID = 'C27NShgTQE';
@@ -34,6 +36,7 @@ const CharliePage = () => {
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [credits, setCredits] = useState(0);
     const [searchTerm, setSearchTerm] = useState(''); // Track search input
+    const [isCurrentSongVisible, setIsCurrentSongVisible] = useState(false); //visibility state for currently playing page
 
     useEffect(() => {
         const urlPath = window.location.pathname;
@@ -83,11 +86,18 @@ const CharliePage = () => {
         const db = getDatabase(app);
         const possibleQueueRef = ref(db, `categoriiSimple/`);
         let combinedData = {};
+
+        const functions = getFunctions(app, 'europe-central2');
+        const getNextSongsFunction = httpsCallable(functions, 'getSongsCharlie');
+
+        const result = await getNextSongsFunction({ novaID: uid })
+        console.log(result, 'resultGetSongs')
     
         try {
             console.log('Fetching possible queue for UID:', uid);
             const snapshot = await get(possibleQueueRef);
             const categories = snapshot.val();
+            console.log(categories, 'newCats')
 
             if (!categories || Object.keys(categories).length === 0) {
                 console.log('No categories found, using default values.');
@@ -108,7 +118,7 @@ const CharliePage = () => {
                 console.log('Combined Data:', combinedData);
             }
             setPossibleQueue(combinedData);
-            setFilteredQueue(combinedData); // Initialize the filteredQueue with the full possibleQueue
+            setFilteredQueue(result.data); // Initialize the filteredQueue with the full possibleQueue
         } catch (error) {
             console.error('Error fetching possible queue:', error);
         }
@@ -189,13 +199,20 @@ const CharliePage = () => {
         setFilteredQueue(filteredResults);
     };
 
+    const animation = {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+    }
+
     return (
+        <>
         <div className="text-center bg-dedicatii-bg2 min-h-screen">
                  <div className="fixed top-0 left-0 right-0 z-50">
                 <CharlieTopBar />
             </div>
 
-            <div className="flex items-center flex-col p-4 mt-10 pt-5">
+            <motion.div {...animation} className={`flex items-center flex-col p-4 mt-10 pt-5 ${isCurrentSongVisible && 'hidden'}`}>
                 <div className="font-inter w-full text-2xl font-bold text-white">
                     Melodii disponibile
                 </div>
@@ -266,7 +283,7 @@ const CharliePage = () => {
                         </div>
                     )}
                 </div>
-            </div>
+            </motion.div>
 
             <Modal
                 isOpen={modalIsOpen}
@@ -298,13 +315,21 @@ const CharliePage = () => {
                 )}
             </Modal>
 
-            <BotBar videoDetails={videoDetails} />
+            <BotBar videoDetails={videoDetails} setIsCurrentSongVisible={setIsCurrentSongVisible} />
 
             <Toaster
                 position="bottom-center"
                 reverseOrder={false}
             />
+
+
         </div>
+            <AnimatePresence>
+                {isCurrentSongVisible && (
+                    <PlayingNow data={videoDetails} />
+                )}
+            </AnimatePresence>
+            </>
     );
 };
 

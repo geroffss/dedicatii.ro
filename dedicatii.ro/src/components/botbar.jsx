@@ -1,9 +1,12 @@
 import React from 'react';
 
-const BotBar = ({ videoDetails }) => {
+const BotBar = ({ videoDetails, setIsCurrentSongVisible }) => {
+
   return (
     videoDetails && (
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-dedicatii-bg text-white p-2 flex items-center h-[84px]">
+      <button 
+        onClick={() => setIsCurrentSongVisible((prevState) => !prevState)}
+        className="fixed bottom-0 left-0 right-0 z-30 bg-dedicatii-bg text-white p-2 flex items-center h-[84px]">
         <img 
           src={videoDetails.thumbnail} 
           alt={videoDetails.title} 
@@ -13,7 +16,7 @@ const BotBar = ({ videoDetails }) => {
           <p><strong></strong> {videoDetails.title}</p>
           <p className="font-light">{videoDetails.artist}</p>
         </div>
-      </div>
+      </button>
     )
   );
 };
