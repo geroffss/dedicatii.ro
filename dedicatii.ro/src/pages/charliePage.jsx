@@ -300,7 +300,7 @@ const CharliePage = () => {
                         <div className="flex gap-4 justify-center">
                             <button
                                 className="bg-dedicatii-button3 text-white py-2 px-4 rounded mt-4"
-                                onClick={() => addVideoToQueue(selectedVideo.id)}
+                                onClick={() => addVideoToQueue(selectedVideo.videoID)}
                             >
                                 Confirmă
                             </button>
