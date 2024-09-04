@@ -11,11 +11,13 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "@zxing/browser": "^0.1.5",
-    "axios": "^1.7.2",
+    "axios": "^1.7.5",
     "firebase": "^10.12.4",
     "html5-qrcode": "^2.3.8",
+    "http-proxy-middleware": "^3.0.0",
     "qr-code-styling": "^1.6.0-rc.1",
     "qrcode.react": "^3.1.0",
+    "query-string": "^9.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-modal": "^3.16.1",
@@ -24,6 +26,8 @@
     "react-qr-scanner": "^1.0.0-alpha.11",
     "react-router-dom": "^6.25.1",
     "react-scripts": "^5.0.1",
+    "react-spotify-web-playback": "^0.14.4",
+    "spotify-web-api-js": "^1.5.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
