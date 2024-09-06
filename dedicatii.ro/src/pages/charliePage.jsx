@@ -29,6 +29,7 @@ const CharliePage = () => {
     const [playlist, setPlaylist] = useState([]);
     const [currentSong, setCurrentSong] = useState(null);
     const [videoDetails, setVideoDetails] = useState(null);
+    const [currentQueue, setCurrentQueue] = useState(null);
     const [newVideoId, setNewVideoId] = useState('');
     const [possibleQueue, setPossibleQueue] = useState({});
     const [filteredQueue, setFilteredQueue] = useState({});
@@ -67,6 +68,8 @@ const CharliePage = () => {
 
         onValue(playlistRef, (snapshot) => {
             const data = snapshot.val();
+            console.log(data, 'data')
+            setCurrentQueue(data.currentQueue)
             if (data) {
                 const songs = data.songs ? Object.values(data.songs) : [];
                 setPlaylist(songs);
@@ -315,7 +318,7 @@ const CharliePage = () => {
                 )}
             </Modal>
 
-            <BotBar videoDetails={videoDetails} setIsCurrentSongVisible={setIsCurrentSongVisible} />
+            <BotBar videoDetails={currentQueue.songs[0]} setIsCurrentSongVisible={setIsCurrentSongVisible} />
 
             <Toaster
                 position="bottom-center"
@@ -326,7 +329,7 @@ const CharliePage = () => {
         </div>
             <AnimatePresence>
                 {isCurrentSongVisible && (
-                    <PlayingNow data={videoDetails} />
+                    <PlayingNow queue={currentQueue} />
                 )}
             </AnimatePresence>
             </>
