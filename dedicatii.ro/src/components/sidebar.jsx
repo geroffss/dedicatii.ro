@@ -45,6 +45,14 @@ const Sidebar = ({ onMenuSelect }) => {
                         Adaugă Piese
                     </button>
                 </li>
+                <li className="mb-2">
+                    <button 
+                        className="text-white hover:text-dedicatii-button3 focus:outline-none font-inter"
+                        onClick={() => onMenuSelect("Categories")}
+                    >
+                        Categorii
+                    </button>
+                </li>
                 <li className="mb-2 flex gap-2 md:hidden text-white">
                     <Logout />
                 </li>

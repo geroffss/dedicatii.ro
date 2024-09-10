@@ -332,7 +332,7 @@ const CharliePage = () => {
                     <PlayingNow queue={currentQueue} />
                 )}
             </AnimatePresence>
-            </>
+        </>
     );
 };
 
