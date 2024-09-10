@@ -318,7 +318,7 @@ const CharliePage = () => {
                 )}
             </Modal>
 
-            <BotBar videoDetails={currentQueue.songs[0]} setIsCurrentSongVisible={setIsCurrentSongVisible} />
+            <BotBar videoDetails={currentQueue?.songs[0]} setIsCurrentSongVisible={setIsCurrentSongVisible} />
 
             <Toaster
                 position="bottom-center"
