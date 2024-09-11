@@ -6,9 +6,7 @@ import { faBackward, faPlay, faPause, faForward } from '@fortawesome/free-solid-
 import { auth, database } from '../firebaseconfig';
 import { ref, get, set, remove } from 'firebase/database';
 
-const API_KEY = 'AIzaSyDbmgasA-HpdTpzpR0NyG2viXY_A7WlAE0';
-
-const PlayerComponent = ({ onSongChange }) => {
+function PlayerComponent({ onSongChange }) {
   const [playlist, setPlaylist] = useState([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -19,6 +17,7 @@ const PlayerComponent = ({ onSongChange }) => {
   const [currentTitle, setCurrentTitle] = useState('Title Placeholder');
   const [currentArtist, setCurrentArtist] = useState('Artist Placeholder');
   const [currentThumbnail, setCurrentThumbnail] = useState('https://via.placeholder.com/150');
+  const [accessToken, setAccessToken] = useState(null);
   const playerRef = useRef(null);
 
   useEffect(() => {
@@ -26,16 +25,26 @@ const PlayerComponent = ({ onSongChange }) => {
       if (user) {
         const uid = user.uid;
         const playlistRef = ref(database, `nova/${uid}/playlistID`);
+        const tokenRef = ref(database, `nova/${uid}/token`);
         try {
-          const snapshot = await get(playlistRef);
-          if (snapshot.exists()) {
-            setPlaylistID(snapshot.val());
+          const [playlistSnapshot, tokenSnapshot] = await Promise.all([
+            get(playlistRef),
+            get(tokenRef)
+          ]);
+          if (playlistSnapshot.exists()) {
+            setPlaylistID(playlistSnapshot.val());
             console.log('Playlist ID fetched from database');
           } else {
             console.error('Playlist ID not found in database');
           }
+          if (tokenSnapshot.exists()) {
+            setAccessToken(tokenSnapshot.val());
+            console.log('Access token fetched from database');
+          } else {
+            console.error('Access token not found in database');
+          }
         } catch (error) {
-          console.error('Error fetching playlist ID', error);
+          console.error('Error fetching data', error);
         }
       } else {
         console.error('User not authenticated');
@@ -46,7 +55,7 @@ const PlayerComponent = ({ onSongChange }) => {
   }, []);
 
   useEffect(() => {
-    if (playlistID) {
+    if (playlistID && accessToken) {
       const fetchPlaylist = async () => {
         try {
           const response = await axios.get('https://www.googleapis.com/youtube/v3/playlistItems', {
@@ -54,21 +63,27 @@ const PlayerComponent = ({ onSongChange }) => {
               part: 'snippet',
               maxResults: 500,
               playlistId: playlistID,
-              key: API_KEY,
             },
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
           });
           setPlaylist(response.data.items);
         } catch (error) {
           console.error('Error fetching playlist', error);
+          if (error.response && error.response.status === 401) {
+            console.error('Access token may have expired. Please re-authenticate.');
+            // Here you might want to implement a token refresh mechanism
+          }
         }
       };
 
       fetchPlaylist();
     }
-  }, [playlistID]);
+  }, [playlistID, accessToken]);
 
   useEffect(() => {
-    if (auth.currentUser) {
+    if (auth.currentUser && accessToken) {
       const uid = auth.currentUser.uid;
       const currentSongRef = ref(database, `nova/${uid}/currentSong`);
 
@@ -84,8 +99,10 @@ const PlayerComponent = ({ onSongChange }) => {
               params: {
                 part: 'snippet',
                 id: videoId,
-                key: API_KEY,
               },
+              headers: {
+                'Authorization': `Bearer ${accessToken}`
+              }
             });
 
             const videoData = response.data.items[0];
@@ -104,17 +121,19 @@ const PlayerComponent = ({ onSongChange }) => {
 
       fetchCurrentSongDetails();
     }
-  }, [currentVideoId]);
+  }, [currentVideoId, accessToken]);
 
   useEffect(() => {
-    if (playlist.length > 0 && onSongChange) {
+    if (playlist.length > 0 && onSongChange && playlistID) {
       const currentVideoId = playlist[currentVideoIndex]?.snippet?.resourceId?.videoId;
-      const uid = auth.currentUser.uid;
-      const currentSongRef = ref(database, `nova/${uid}/currentSong`);
-      set(currentSongRef, currentVideoId);
+      const uid = auth.currentUser?.uid;
+      if (uid && currentVideoId) {
+        const currentSongRef = ref(database, `nova/${uid}/currentSong`);
+        set(currentSongRef, currentVideoId);
 
-      onSongChange(playlistID, currentVideoId);
-      setCurrentVideoId(currentVideoId);
+        onSongChange(playlistID, currentVideoId);
+        setCurrentVideoId(currentVideoId);
+      }
     }
   }, [currentVideoIndex, playlist, playlistID, onSongChange]);
 
@@ -173,7 +192,6 @@ const PlayerComponent = ({ onSongChange }) => {
 
   const handleProgress = (state) => {
     setCurrentTime(state.playedSeconds);
-    setDuration(state.duration || duration);
   };
 
   const handleDuration = (duration) => {
@@ -188,76 +206,78 @@ const PlayerComponent = ({ onSongChange }) => {
     }
   };
 
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   return (
-    <div className="player p-6  text-white m-4 bg-dedicatii-bg rounded-lg">
+    <div className="player p-6 text-white m-4 bg-dedicatii-bg rounded-lg">
       <h2 className="text-3xl font-bold mb-6 text-center">Now Playing</h2>
       <div className="flex flex-col md:flex-row">
-      <div className="font-inter flex flex-col md:flex-row w-full items-center justify-center gap-5 rounded-lg pb-2 pt-2 text-center text-base text-white mb-6 md:mb-0">
-      <div className="bg-dedicatii-bg3 flex flex-col items-center justify-center text-center p-2 md:p-4 rounded-lg flex-shrink-0 w-full md:w-1/2">
-  <img
-    src={currentThumbnail}
-    alt="Album Art"
-    className="h-32 w-32 md:h-52 md:w-52 rounded-lg object-cover shadow-2xl"
-    style={{ objectFit: 'cover' }}
-  />
-  <div className="pt-2 md:pt-3 font-medium w-full">
-    <h3 className="text-lg md:text-2xl font-semibold">{currentTitle}</h3>
-  </div>
-  <div className="text-sm md:text-base font-light">{currentArtist}</div>
-</div>
-
-  <div className="md:w-1/2 w-full flex flex-col items-center">
-    <ul className="playlist bg-dedicatii-bg3 h-80 md:h-72 p-4 rounded-lg overflow-y-auto w-full">
-      {playlist.map((item, index) => (
-        <li
-          key={index}
-          className={`mb-2 cursor-pointer hover:bg-gray-600 p-2 rounded ${index === currentVideoIndex ? 'bg-gray-800' : ''}`}
-          onClick={() => setCurrentVideoIndex(index)}
-        >
-          <div className="flex items-center gap-2">
-            <img className="w-12" src={item.snippet.thumbnails.default.url} alt={item.snippet.title} />
-            <span>{item.snippet.title}</span>
+        <div className="font-inter flex flex-col md:flex-row w-full items-center justify-center gap-5 rounded-lg pb-2 pt-2 text-center text-base text-white mb-6 md:mb-0">
+          <div className="bg-dedicatii-bg3 flex flex-col items-center justify-center text-center p-2 md:p-4 rounded-lg flex-shrink-0 w-full md:w-1/2">
+            <img
+              src={currentThumbnail}
+              alt={`Album art for ${currentTitle}`}
+              className="h-32 w-32 md:h-52 md:w-52 rounded-lg object-cover shadow-2xl"
+            />
+            <div className="pt-2 md:pt-3 font-medium w-full">
+              <h3 className="text-lg md:text-2xl font-semibold">{currentTitle}</h3>
+            </div>
+            <div className="text-sm md:text-base font-light">{currentArtist}</div>
           </div>
-        </li>
-      ))}
-    </ul>
-  </div>
-</div>
-
-
+          <div className="md:w-1/2 w-full flex flex-col items-center">
+            <ul className="playlist bg-dedicatii-bg3 h-80 md:h-72 p-4 rounded-lg overflow-y-auto w-full">
+              {playlist.map((item, index) => (
+                <li
+                  key={index}
+                  className={`mb-2 cursor-pointer hover:bg-gray-600 p-2 rounded ${index === currentVideoIndex ? 'bg-gray-800' : ''}`}
+                  onClick={() => setCurrentVideoIndex(index)}
+                >
+                  <div className="flex items-center gap-2">
+                    <img className="w-12 h-12 object-cover" src={item.snippet.thumbnails.default.url} alt={item.snippet.title} />
+                    <span>{item.snippet.title}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
       <div className="time-controls px-4 mt-4 flex items-center justify-center w-full">
-            <span className="text-white mr-3">
-              {`${Math.floor(currentTime / 60)}:${Math.floor(currentTime % 60).toString().padStart(2, '0')}`}
-            </span>
-            <input
-              type="range"
-              min="0"
-              max={duration || 0}
-              step="0.1"
-              value={currentTime}
-              onChange={handleSeek}
-              className="w-full"
-            />
-            <span className="text-white ml-3">
-              {`${Math.floor(duration / 60)}:${Math.floor(duration % 60).toString().padStart(2, '0')}`}
-            </span>
-          </div>
+        <span className="text-white mr-3">
+          {formatTime(currentTime)}
+        </span>
+        <input
+          type="range"
+          min="0"
+          max={duration || 0}
+          step="0.1"
+          value={currentTime}
+          onChange={handleSeek}
+          className="w-full"
+          aria-label="Seek"
+        />
+        <span className="text-white ml-3">
+          {formatTime(duration)}
+        </span>
+      </div>
       <div className="player-controls flex justify-center">
-        
-        <button className="prev text-white p-3 mx-3 rounded-full" onClick={handlePrev}>
+        <button className="prev text-white p-3 mx-3 rounded-full" onClick={handlePrev} aria-label="Previous track">
           <FontAwesomeIcon icon={faBackward} />
         </button>
-        <button className={`playpause text-white p-3 mx-3 rounded-full ${isPlaying ? 'pause' : 'play'}`} onClick={handlePlayPause}>
+        <button className={`playpause text-white p-3 mx-3 rounded-full ${isPlaying ? 'pause' : 'play'}`} onClick={handlePlayPause} aria-label={isPlaying ? "Pause" : "Play"}>
           <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
         </button>
-        <button className="next text-white p-3 mx-3 rounded-full" onClick={handleNext}>
+        <button className="next text-white p-3 mx-3 rounded-full" onClick={handleNext} aria-label="Next track">
           <FontAwesomeIcon icon={faForward} />
         </button>
       </div>
       <ReactPlayer
         ref={playerRef}
-        url={currentVideoId ? `https://www.youtube.com/watch?v=${currentVideoId}` : `https://www.youtube.com/watch?v=${currentVideoId || ''}`}
+        url={currentVideoId ? `https://www.youtube.com/watch?v=${currentVideoId}` : ''}
         playing={isPlaying}
         onProgress={handleProgress}
         onDuration={handleDuration}
@@ -282,6 +302,6 @@ const PlayerComponent = ({ onSongChange }) => {
       />
     </div>
   );
-};
+}
 
 export default PlayerComponent;
