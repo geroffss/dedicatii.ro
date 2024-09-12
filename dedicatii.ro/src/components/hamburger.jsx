@@ -64,6 +64,14 @@ const HamburgerMenu2 = ({ isOpen, toggleMenu, onMenuSelect }) => {
                   Adaugă Piese
                 </button>
               </li>
+              <li className="mb-2">
+                <button 
+                  className="text-white hover:text-gray-900 focus:outline-none"
+                  onClick={() => handleMenuSelect("Categories")}
+                >
+                  Categorii
+                </button>
+              </li>
               <li className="mb-2 flex gap-2 md:hidden text-white">
                 <Logout />
               </li>

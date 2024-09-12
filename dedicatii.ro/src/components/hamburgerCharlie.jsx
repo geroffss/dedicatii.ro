@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Logout from './logout.jsx';
 import Modal from 'react-modal';
-import { app } from '../firebaseconfig';
+import { app } from '../firebaseconfig.js';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import QrReader from 'react-qr-scanner';
 import toast from 'react-hot-toast';

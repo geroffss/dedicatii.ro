@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CharlieTopBar from '../components/charlieTopBar';
 import Modal from 'react-modal';
-import { getDatabase, ref, onValue, get } from 'firebase/database';
+import { getDatabase, ref, onValue, get, child } from 'firebase/database';
 import { app } from '../firebaseconfig';
 import axios from 'axios';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -38,6 +38,7 @@ const CharliePage = () => {
     const [credits, setCredits] = useState(0);
     const [searchTerm, setSearchTerm] = useState(''); // Track search input
     const [isCurrentSongVisible, setIsCurrentSongVisible] = useState(false); //visibility state for currently playing page
+    const [searchFocus, setSearchFocus] = useState(false); 
 
     useEffect(() => {
         const urlPath = window.location.pathname;
@@ -86,45 +87,27 @@ const CharliePage = () => {
     };
 
     const fetchPossibleQueue = async (uid) => {
+        // debugger
         const db = getDatabase(app);
+        const categories = ref(db, `nova/${uid}/categories`);
+        const snapshot = await get(categories);
+        const selectedCategories = snapshot.val();
         const possibleQueueRef = ref(db, `categoriiSimple/`);
         let combinedData = {};
 
-        const functions = getFunctions(app, 'europe-central2');
-        const getNextSongsFunction = httpsCallable(functions, 'getSongsCharlie');
-
-        const result = await getNextSongsFunction({ novaID: uid })
-        console.log(result, 'resultGetSongs')
-    
-        try {
-            console.log('Fetching possible queue for UID:', uid);
-            const snapshot = await get(possibleQueueRef);
-            const categories = snapshot.val();
-            console.log(categories, 'newCats')
-
-            if (!categories || Object.keys(categories).length === 0) {
-                console.log('No categories found, using default values.');
-                combinedData['Default'] = Array.from({ length: DEFAULT_VIDEO_COUNT }, () => DEFAULT_VIDEO_ID);
-            } else {
-                console.log('Categories found:', categories);
-    
-                Object.entries(categories).forEach((category) => {
-                    combinedData[category[0]] = [];
-                    combinedData[category[0]].push(...Object.values(category[1]));
-                })
+        for(const category of selectedCategories) {
+            const categoryRef = child(possibleQueueRef, category);
+            const categorySnapshot = await get(categoryRef);
+                if (categorySnapshot.exists()) {
+                const result = categorySnapshot.val();
+                combinedData[category] = result;
             }
-    
-            if (Object.keys(combinedData).length === 0) {
-                console.log('No data found in any category, using default values.');
-                combinedData['Default'] = Array.from({ length: DEFAULT_VIDEO_COUNT }, () => DEFAULT_VIDEO_ID);
-            } else {
-                console.log('Combined Data:', combinedData);
-            }
-            setPossibleQueue(combinedData);
-            setFilteredQueue(result.data); // Initialize the filteredQueue with the full possibleQueue
-        } catch (error) {
-            console.error('Error fetching possible queue:', error);
         }
+
+        console.log(combinedData, 'combinedData')
+        setPossibleQueue(combinedData);
+        setFilteredQueue(combinedData); // Initialize the filteredQueue with the full possibleQueue
+        
     };
 
     const fetchVideoDetails = async (videoId) => {
@@ -211,7 +194,7 @@ const CharliePage = () => {
     return (
         <>
         <div className="text-center bg-dedicatii-bg2 min-h-screen">
-                 <div className="fixed top-0 left-0 right-0 z-50">
+            <div className="fixed top-0 left-0 right-0 z-50">
                 <CharlieTopBar />
             </div>
 
@@ -224,11 +207,13 @@ const CharliePage = () => {
                     <div className="z-2 flex items-center justify-center w-full bg-white bg-opacity-10 rounded-2xl px-4 py-2 mt-1">
                         <FontAwesomeIcon icon={faSearch} className="text-white" />
                         <input
-                            className="font-inter text-center flex min-w-0 flex-grow text-xl placeholder:text-[#A4A4A4] bg-transparent"
-                            placeholder="Caută o melodie"
+                            className="font-inter text-center flex min-w-0 flex-grow text-xl placeholder:text-[#A4A4A4] bg-transparent outline-none text-white"
+                            placeholder={!searchFocus && 'Caută o melodie...'}
                             type="text"
                             value={searchTerm} // Bind searchTerm to the input field
                             onChange={handleSearch} // Call handleSearch on input change
+                            onFocus={() => setSearchFocus(true)}
+                            onBlur={() => setSearchFocus(false)}
                         />
                     </div>
                 </div>

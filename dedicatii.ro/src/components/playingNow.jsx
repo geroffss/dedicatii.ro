@@ -38,7 +38,7 @@ export const PlayingNow = ({ queue }) => {
         <div className='flex flex-col w-full mt-2 gap-0.5'>
 
         {/* queued songs */}
-        {queue.songs?.map((song, index) =>
+        {queue.songs?.slice(1).map((song, index) =>
           <div key={song.title + index} className='h-[70px] bg-[#2D2836] flex items-center gap-3 px-2'>
             <img src={song.thumbnail} alt={song.title} className='h-[49px] w-[49px] object-cover' />
             <div className='text-start'>
