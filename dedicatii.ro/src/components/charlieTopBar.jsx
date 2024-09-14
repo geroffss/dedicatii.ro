@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import logo from '../logo2.svg';
 import HamburgerMenu from './hamburgerCharlie';
 
-const CharlieTopBar = () => {
+const CharlieTopBar = ({ handleCategoriesClick }) => {
   const [userName, setUserName] = useState("");
   const [creditsCount, setCreditsCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -51,12 +51,20 @@ const CharlieTopBar = () => {
   };
 
   return (
-    <div className="relative flex items-center bg-dedicatii-bg p-4">
+    <div className="relative flex items-center bg-[#524C5D] p-4">
       <div className="text-white block md:hidden">
         <button onClick={toggleMenu}>
           <FontAwesomeIcon icon={faBars} />
-        </button>     
-        <HamburgerMenu isOpen={isMenuOpen} toggleMenu={toggleMenu} selectedMenu />
+        </button>
+        <HamburgerMenu
+          isOpen={isMenuOpen}
+          toggleMenu={toggleMenu}
+          handleCategoriesClick={() => {
+            setIsMenuOpen(false);
+            handleCategoriesClick();
+          }}
+          selectedMenu
+        />
       </div>
       <div className="absolute left-1/2 transform -translate-x-1/2">
         <img src={logo} alt="" className="h-10" />
@@ -64,7 +72,11 @@ const CharlieTopBar = () => {
       <div className="ml-auto text-white flex items-center gap-4">
         <span>{creditsCount} Credite</span>
         <FontAwesomeIcon icon={faUser} />
-        <FontAwesomeIcon icon={faSignOutAlt} onClick={handleLogout} className="hidden md:flex" />
+        <FontAwesomeIcon
+          icon={faSignOutAlt}
+          onClick={handleLogout}
+          className="hidden md:flex"
+        />
       </div>
     </div>
   );

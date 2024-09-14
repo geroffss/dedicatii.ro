@@ -6,7 +6,7 @@ const BotBar = ({ videoDetails, setIsCurrentSongVisible }) => {
     videoDetails && (
       <button 
         onClick={() => setIsCurrentSongVisible((prevState) => !prevState)}
-        className="fixed bottom-0 left-0 right-0 z-30 bg-dedicatii-bg text-white p-2 flex items-center h-[84px]">
+        className="fixed bottom-0 left-0 right-0 z-30 bg-dedicatii-bg text-white p-2 flex items-center h-[84px] pl-5">
         <img 
           src={videoDetails.thumbnail} 
           alt={videoDetails.title} 
