@@ -4,7 +4,7 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 import { faUser, faSignOutAlt, faBars } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import logo from '../logo2.svg';
-import HamburgerMenu from '../components/hamburgetCharlie';
+import HamburgerMenu from './hamburgerCharlie';
 
 const CharlieTopBar = () => {
   const [userName, setUserName] = useState("");

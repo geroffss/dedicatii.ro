@@ -1,22 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import CharlieTopBar from '../components/charlieTopBar';
 import Modal from 'react-modal';
-import { getDatabase, ref, onValue, get } from 'firebase/database';
+import { getDatabase, ref, onValue, get, child } from 'firebase/database';
 import { app } from '../firebaseconfig';
 import axios from 'axios';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import BotBar from '../components/botbar';
+import toast, { Toaster } from 'react-hot-toast';
+import { PlayingNow } from '../components/playingNow';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const API_KEY = 'AIzaSyA7Xj1W5mdDeAw2Aja47q6qa7zPPYZtT68';
 const DEFAULT_VIDEO_ID = 'C27NShgTQE';
 const DEFAULT_VIDEO_COUNT = 10;
 
+export const toastStyle = {
+    style: {
+        borderRadius: '10px',
+        background: '#333',
+        color: '#fff',
+        marginBottom: '84px',
+    }
+}
+
 const CharliePage = () => {
     const [playlist, setPlaylist] = useState([]);
     const [currentSong, setCurrentSong] = useState(null);
     const [videoDetails, setVideoDetails] = useState(null);
+    const [currentQueue, setCurrentQueue] = useState(null);
     const [newVideoId, setNewVideoId] = useState('');
     const [possibleQueue, setPossibleQueue] = useState({});
     const [filteredQueue, setFilteredQueue] = useState({});
@@ -24,6 +37,8 @@ const CharliePage = () => {
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [credits, setCredits] = useState(0);
     const [searchTerm, setSearchTerm] = useState(''); // Track search input
+    const [isCurrentSongVisible, setIsCurrentSongVisible] = useState(false); //visibility state for currently playing page
+    const [searchFocus, setSearchFocus] = useState(false); 
 
     useEffect(() => {
         const urlPath = window.location.pathname;
@@ -54,6 +69,8 @@ const CharliePage = () => {
 
         onValue(playlistRef, (snapshot) => {
             const data = snapshot.val();
+            console.log(data, 'data')
+            setCurrentQueue(data.currentQueue)
             if (data) {
                 const songs = data.songs ? Object.values(data.songs) : [];
                 setPlaylist(songs);
@@ -70,66 +87,27 @@ const CharliePage = () => {
     };
 
     const fetchPossibleQueue = async (uid) => {
+        // debugger
         const db = getDatabase(app);
-        const possibleQueueRef = ref(db, `categorii/`);
+        const categories = ref(db, `nova/${uid}/categories`);
+        const snapshot = await get(categories);
+        const selectedCategories = snapshot.val();
+        const possibleQueueRef = ref(db, `categoriiSimple/`);
         let combinedData = {};
-    
-        try {
-            console.log('Fetching possible queue for UID:', uid);
-            const snapshot = await get(possibleQueueRef);
-            const categories = snapshot.val();
-    
-            if (!categories || Object.keys(categories).length === 0) {
-                console.log('No categories found, using default values.');
-                combinedData['Default'] = Array.from({ length: DEFAULT_VIDEO_COUNT }, () => DEFAULT_VIDEO_ID);
-            } else {
-                console.log('Categories found:', categories);
-    
-                for (const category in categories) {
-                    if (categories.hasOwnProperty(category)) {
-                        const subitems = categories[category];
-                        if (subitems && Array.isArray(subitems) && subitems.length > 0) {
-                            combinedData[category] = subitems;
-                        } else {
-                            console.log(`No subitems found for category: ${category}`);
-                        }
-                    }
-                }
+
+        for(const category of selectedCategories) {
+            const categoryRef = child(possibleQueueRef, category);
+            const categorySnapshot = await get(categoryRef);
+                if (categorySnapshot.exists()) {
+                const result = categorySnapshot.val();
+                combinedData[category] = result;
             }
-    
-            if (Object.keys(combinedData).length === 0) {
-                console.log('No data found in any category, using default values.');
-                combinedData['Default'] = Array.from({ length: DEFAULT_VIDEO_COUNT }, () => DEFAULT_VIDEO_ID);
-            } else {
-                console.log('Combined Data:', combinedData);
-            }
-    
-            const detailsPromises = [];
-            for (const category in combinedData) {
-                if (combinedData.hasOwnProperty(category)) {
-                    detailsPromises.push(
-                        Promise.all(combinedData[category].map(id => fetchVideoDetails(id)))
-                    );
-                }
-            }
-    
-            const detailsResults = await Promise.all(detailsPromises);
-            const filteredDetails = {};
-            Object.keys(combinedData).forEach((category, index) => {
-                filteredDetails[category] = detailsResults[index].filter(video => video !== null);
-            });
-    
-            if (Object.values(filteredDetails).flat().length === 0) {
-                console.log('No valid video details found in the possible queue.');
-            } else {
-                console.log('Filtered Possible Queue Details:', filteredDetails);
-            }
-    
-            setPossibleQueue(filteredDetails);
-            setFilteredQueue(filteredDetails); // Initialize the filteredQueue with the full possibleQueue
-        } catch (error) {
-            console.error('Error fetching possible queue:', error);
         }
+
+        console.log(combinedData, 'combinedData')
+        setPossibleQueue(combinedData);
+        setFilteredQueue(combinedData); // Initialize the filteredQueue with the full possibleQueue
+        
     };
 
     const fetchVideoDetails = async (videoId) => {
@@ -168,14 +146,18 @@ const CharliePage = () => {
     
         try {
             const addToSongQueue = httpsCallable(functions, 'addToSongQueue');
-            const result = await addToSongQueue({ novaID: uid, songID: videoId });
-            console.log(videoId)
-            console.log('Video added to queue successfully:', result.data);
-            alert('Melodia a fost adăugată cu succes în coadă!');   
+            toast.promise(
+                addToSongQueue({ novaID: uid, songID: videoId }),
+                    {
+                    loading: 'Se adaugă în coadă...',
+                    success: <b>Melodia a fost adăugată cu succes în coadă!</b>,
+                    error: <b>Nu ai suficiente credite pentru a adăuga această melodie în coadă.</b>,
+                    }, toastStyle
+                );
             setModalIsOpen(false);
         } catch (error) {
+            toast.error('Nu ai suficiente credite pentru a adăuga această melodie în coadă.');
             console.error('Error adding video to queue:', error);
-            alert('Nu ai suficiente credite pentru a adăuga această melodie în coadă.');
         }
     };
 
@@ -203,26 +185,35 @@ const CharliePage = () => {
         setFilteredQueue(filteredResults);
     };
 
+    const animation = {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+    }
+
     return (
+        <>
         <div className="text-center bg-dedicatii-bg2 min-h-screen">
-                 <div className="fixed top-0 left-0 right-0 z-50">
+            <div className="fixed top-0 left-0 right-0 z-50">
                 <CharlieTopBar />
             </div>
 
-            <div className="flex items-center flex-col p-4 mt-10 pt-5">
+            <motion.div {...animation} className={`flex items-center flex-col p-4 mt-10 pt-5 ${isCurrentSongVisible && 'hidden'}`}>
                 <div className="font-inter w-full text-2xl font-bold text-white">
                     Melodii disponibile
                 </div>
 
                 <div className="bg-t-bg-rectangle-14tvector-caut-omelodie z-0 flex items-center w-full bg-cover bg-center py-2 px-4 text-left justify-center">
-                    <div className="z-2 flex items-center justify-center w-full bg-white bg-opacity-10 rounded-2xl px-4">
+                    <div className="z-2 flex items-center justify-center w-full bg-white bg-opacity-10 rounded-2xl px-4 py-2 mt-1">
                         <FontAwesomeIcon icon={faSearch} className="text-white" />
                         <input
-                            className="font-inter text-center flex min-w-0 flex-grow text-xl text-white placeholder:text-white bg-transparent"
-                            placeholder="Caută o melodie"
+                            className="font-inter text-center flex min-w-0 flex-grow text-xl placeholder:text-[#A4A4A4] bg-transparent outline-none text-white"
+                            placeholder={!searchFocus && 'Caută o melodie...'}
                             type="text"
                             value={searchTerm} // Bind searchTerm to the input field
                             onChange={handleSearch} // Call handleSearch on input change
+                            onFocus={() => setSearchFocus(true)}
+                            onBlur={() => setSearchFocus(false)}
                         />
                     </div>
                 </div>
@@ -231,7 +222,7 @@ const CharliePage = () => {
                     {Object.keys(filteredQueue).length > 0 && (
                         <div className="possible-queue p-4 rounded-[5px] mb-10">
                             {Object.keys(filteredQueue).map((category, catIndex) => (
-                                <div key={catIndex} className="mb-8 w-full">
+                                <div key={category + catIndex} className="mb-8 w-full">
                                     <h2 className="text-xl font-bold mb-4 text-white">
                                         {category}
                                     </h2>
@@ -242,25 +233,30 @@ const CharliePage = () => {
                                             {filteredQueue[category].map((video, index) =>
                                                 video ? (
                                                     <div
-                                                        key={video.id + index}
-                                                        className="font-inter flex flex-col items-center justify-between gap-y-2 rounded bg-gray-800 p-4 text-center text-white shadow-md hover:shadow-lg transition-shadow duration-300 min-w-[200px] w-[200px] h-[200px]"
+                                                        key={video.title + index}
+                                                        className="font-inter flex flex-col items-center gap-y-2 rounded bg-[#D9D9D9] bg-opacity-10 py-2 text-center text-white shadow-md hover:shadow-lg transition-shadow duration-300 w-[158px] h-[252px]"
                                                     >
-                                                        <aside className="flex h-24 w-24 flex-shrink-0 flex-col items-center">
+                                                        <aside className="flex h-[125px] w-full flex-shrink-0 flex-col items-center">
                                                             <img
                                                                 src={video.thumbnail}
                                                                 alt={video.title}
-                                                                className="h-24 w-24 flex-shrink-0 rounded-full object-cover object-center"
+                                                                className="h-[125px] w-[122px] flex-shrink-0 rounded-md object-cover object-center"
                                                                 loading="lazy"
                                                                 onClick={() => openDedicateModal(video)}
                                                             />
                                                         </aside>
                                                         <div className="flex flex-col items-center">
-                                                            <h2 className="self-stretch font-medium text-sm">
+                                                            <h2 className="self-stretch font-medium text-base w-[140px] line-clamp-1">
                                                                 {video.title}
                                                             </h2>
                                                         </div>
+                                                        <div className="flex flex-col items-center">
+                                                            <h2 className="self-stretch font-light text-sm w-[140px] line-clamp-1">
+                                                                {video.artist}
+                                                            </h2>
+                                                        </div>
                                                         <button
-                                                            className="bg-dedicatii-button3 text-white hidden py-2 px-4 rounded-lg mt-2 w-full transition-colors duration-300"
+                                                            className="bg-[#D9D9D9] bg-opacity-10 text-white py-2 px-4 rounded-md w-[138px] transition-colors duration-300 mb-1"
                                                             onClick={() => openDedicateModal(video)}
                                                         >
                                                             Dedică
@@ -275,7 +271,7 @@ const CharliePage = () => {
                         </div>
                     )}
                 </div>
-            </div>
+            </motion.div>
 
             <Modal
                 isOpen={modalIsOpen}
@@ -292,7 +288,7 @@ const CharliePage = () => {
                         <div className="flex gap-4 justify-center">
                             <button
                                 className="bg-dedicatii-button3 text-white py-2 px-4 rounded mt-4"
-                                onClick={() => addVideoToQueue(selectedVideo.id)}
+                                onClick={() => addVideoToQueue(selectedVideo.videoID)}
                             >
                                 Confirmă
                             </button>
@@ -307,8 +303,21 @@ const CharliePage = () => {
                 )}
             </Modal>
 
-            <BotBar videoDetails={videoDetails} />
+            <BotBar videoDetails={currentQueue?.songs[0]} setIsCurrentSongVisible={setIsCurrentSongVisible} />
+
+            <Toaster
+                position="bottom-center"
+                reverseOrder={false}
+            />
+
+
         </div>
+            <AnimatePresence>
+                {isCurrentSongVisible && (
+                    <PlayingNow queue={currentQueue} />
+                )}
+            </AnimatePresence>
+        </>
     );
 };
 

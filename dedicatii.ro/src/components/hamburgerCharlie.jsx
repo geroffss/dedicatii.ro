@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Logout from './logout.jsx';
 import Modal from 'react-modal';
-import { app } from '../firebaseconfig';
+import { app } from '../firebaseconfig.js';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import QrReader from 'react-qr-scanner';
+import toast from 'react-hot-toast';
+import { toastStyle } from '../pages/charliePage.jsx';
 
 const HamburgerMenu = ({ isOpen, toggleMenu }) => {
     const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
@@ -69,27 +71,14 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
         const redeemCodeFunction = httpsCallable(functions, 'redeemCode');
     
         try {
-            const result = await redeemCodeFunction({ code: redeemCode });
-    
-            // Log the result to check its structure
-            console.log('Redeem code result:', result);
-    
-            // Check if result.data is true or an object
-            if (result.data === true) {
-                // Valid code
-                setRedeemMessage('Codul a fost activat cu succes!');
-                setMessageType('success');
-            } else if (result.data.valid === false) {
-                // Invalid code
-                setRedeemMessage(result.data.message || 'Codul este invalid sau a expirat. Vă rugăm să încercați din nou.');
-                setMessageType('error');
-            } else {
-                // Unexpected response
-                setRedeemMessage('Codul este invalid sau a expirat. Vă rugăm să încercați din nou.');
-                setMessageType('error');
-            }
-    
-            // Clear the code input field
+            toast.promise(
+                redeemCodeFunction({ code: redeemCode }),
+                    {
+                    loading: 'Se activează codul...',
+                    success: <b>Codul a fost adăugat cu succes!</b>,
+                    error: <b>Codul este invalid sau a expirat. Vă rugăm să încercați din nou.</b>,
+                    }, toastStyle
+                );
             setRedeemCode('');
     
         } catch (error) {
@@ -97,10 +86,10 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
             setRedeemMessage('Eroare la activarea codului, vă rugăm să încercați din nou.');
             setMessageType('error');
         }
+
+        setIsRedeemModalOpen(false);
     };
     
-    
-
     return (
         isOpen && (
             <div className="absolute top-full left-0 w-full shadow-lg z-30 bg-dedicatii-bg">
