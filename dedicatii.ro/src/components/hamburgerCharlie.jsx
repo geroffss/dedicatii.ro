@@ -7,7 +7,7 @@ import QrReader from 'react-qr-scanner';
 import toast from 'react-hot-toast';
 import { toastStyle } from '../pages/charliePage.jsx';
 
-const HamburgerMenu = ({ isOpen, toggleMenu }) => {
+const HamburgerMenu = ({ isOpen, toggleMenu, handleCategoriesClick }) => {
     const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
     const [isQRModalOpen, setIsQRModalOpen] = useState(false);
     const [qrResult, setQrResult] = useState('');
@@ -108,6 +108,14 @@ const HamburgerMenu = ({ isOpen, toggleMenu }) => {
                             onClick={handleScanQRCode}
                         >
                             Scanează
+                        </button>
+                    </div>
+                    <div className="flex flex-col items-center">
+                        <button
+                            className="flex items-center justify-center p-2 text-center"
+                            onClick={handleCategoriesClick}
+                        >
+                            Categorii
                         </button>
                     </div>
                     <div className="flex flex-col items-center">
