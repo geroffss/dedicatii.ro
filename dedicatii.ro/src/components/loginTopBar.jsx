@@ -35,7 +35,7 @@ const LoginTopBar = ({ handleCategoriesClick }) => {
 
   return (
     <div className="absolute top-0 left-0 flex items-center p-2">
-      <div className="text-white block md:hidden">
+      <div className="text-white block">
         <button 
           onClick={toggleMenu} 
           aria-label="Toggle menu" 
