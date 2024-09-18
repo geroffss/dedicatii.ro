@@ -5,15 +5,18 @@ import Main from './pages/main';
 import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
 import CharliePage from './pages/charliePage';
+import CharlieProfile from './pages/charlieProfile';
 
 function App() {
   return (
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/main" element={<ProtectedRoute element={Main} requiredRole="nova" />} />
           <Route path="/" element={<Login />} />
+          <Route path="/main" element={<ProtectedRoute element={Main} requiredRole="nova" />} />
           <Route path="/charlie/*" element={<ProtectedRoute element={CharliePage} requiredRole="charlie" />} />
+          <Route path="/charlie/profile" element={<ProtectedRoute element={CharlieProfile} requiredRole="charlie" />} />
+          <Route path="/charlie/:id/profile" element={<ProtectedRoute element={CharlieProfile} requiredRole="charlie" />} />
         </Routes>
       </div>
     </Router>

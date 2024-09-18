@@ -3,12 +3,10 @@ import { auth } from '../firebaseconfig'; // Adjust the path as necessary
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { getDatabase, ref, set } from "firebase/database";
-import logo from '../logo1.svg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
-import LoginTopBar from '../components/loginTopBar';
 
-const Login = () => {
+const HamburgerMenuLogin = ({ isOpen, toggleMenu, handleCategoriesClick }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -33,10 +31,10 @@ const Login = () => {
 
             if (!userDoc.exists()) {
                 await setDoc(userDocRef, {
-                    role: 'charlie',
+                    role: 'nova',
                     email: user.email,
                 });
-                window.location.href = '/charlie';
+                window.location.href = '/main';
             } else {
                 const userData = userDoc.data();
                 if (userData.role === 'charlie') {
@@ -79,15 +77,10 @@ const Login = () => {
             setError('Failed to fetch YouTube data. Please try again.');
         }
     };
-
     return (
-        <div className="flex items-center flex-col justify-center min-h-screen bg-gradient-to-bl from-[#a856eb] via-[#d64061] to-[#211624]">
-            <LoginTopBar />
-            <div className="bg-white bg-opacity-15 backdrop-filter backdrop-blur-lg p-8 rounded-2xl shadow-lg max-w-sm w-full">
-                <img className="w-[136px] h-[136px] mx-auto" src={logo} alt="Dedicații.ro logo" />
-                <h1 className="text-4xl font-bold mb-2 text-center text-white">Dedicații.ro</h1>
-                <h2 className="text-xl font-semibold mb-6 text-center text-gray-200">Piesa ta în boxa mea</h2>
-                {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        isOpen && (
+            <div className="absolute h-screen top-0 left-0 w-max shadow-lg z-30 bg-dedicatii-bg3 p-2">
+                <div className="font-inter flex h-full w-full flex-shrink-0 flex-col items-center overflow-clip text-start font-medium text-white">
                 <button
                     className={`w-full text-white py-3 px-4 rounded-lg flex items-center justify-center ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} ${loading ? 'cursor-not-allowed' : ''}`}
                     onClick={handleGoogleSignIn}
@@ -98,13 +91,14 @@ const Login = () => {
                     ) : (
                         <>
                             <FontAwesomeIcon icon={faGoogle} className="mr-2" />
-                            Login Client
+                            Login Restaurant
                         </>
                     )}
                 </button>
+                </div>
             </div>
-        </div>
+        )
     );
 };
 
-export default Login;
+export default HamburgerMenuLogin;

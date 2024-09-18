@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getDatabase, ref, onValue } from 'firebase/database';
-import { faUser, faSignOutAlt, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faSignOutAlt, faBars } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import logo from '../logo2.svg';
 import HamburgerMenu from './hamburgerCharlie';
 
 const CharlieTopBar = ({ handleCategoriesClick }) => {
-  const [userName, setUserName] = useState("");
   const [creditsCount, setCreditsCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -28,13 +32,21 @@ const CharlieTopBar = ({ handleCategoriesClick }) => {
       });
     };
 
+    const generateAvatar = (name) => {
+      const encodedName = encodeURIComponent(name);
+      const avatarUrl = `https://api.dicebear.com/6.x/initials/svg?seed=${name}`;
+      setAvatarUrl(avatarUrl);
+    };
+
     unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUserName(user.displayName || "User Name");
         fetchCreditsCount(user.uid);
+        setDisplayName(user.displayName || 'User');
+        generateAvatar(user.displayName || 'User');
       } else {
-        setUserName("");
         setCreditsCount(0);
+        setDisplayName('');
+        setAvatarUrl('');
       }
     });
 
@@ -45,15 +57,31 @@ const CharlieTopBar = ({ handleCategoriesClick }) => {
     const auth = getAuth();
     signOut(auth).then(() => {
       console.log("User signed out");
+      navigate('/');
     }).catch((error) => {
       console.error("Error signing out: ", error);
     });
   };
 
+  const handleProfileClick = () => {
+    const pathParts = location.pathname.split('/');
+    const id = pathParts[2]; // This is the additional ID, not the user ID
+
+    if (id) {
+      navigate(`/charlie/${id}/profile`);
+    } else {
+      navigate('/charlie/profile');
+    }
+  };
+
   return (
-    <div className="relative flex items-center bg-[#524C5D] p-4">
+    <div className="relative flex items-center bg-[#524C5D] p-2">
       <div className="text-white block md:hidden">
-        <button onClick={toggleMenu}>
+        <button 
+          onClick={toggleMenu} 
+          aria-label="Toggle menu" 
+          className="focus:outline-none focus:ring-2 focus:ring-white rounded p-1"
+        >
           <FontAwesomeIcon icon={faBars} />
         </button>
         <HamburgerMenu
@@ -67,16 +95,28 @@ const CharlieTopBar = ({ handleCategoriesClick }) => {
         />
       </div>
       <div className="absolute left-1/2 transform -translate-x-1/2">
-        <img src={logo} alt="" className="h-10" />
+        <img src={logo} alt="Dedicații.ro logo" className="h-10" />
       </div>
       <div className="ml-auto text-white flex items-center gap-4">
-        <span>{creditsCount} Credite</span>
-        <FontAwesomeIcon icon={faUser} />
-        <FontAwesomeIcon
-          icon={faSignOutAlt}
+        <span className="text-sm md:text-base">{creditsCount} Credite</span>
+        <button
+          onClick={handleProfileClick}
+          className="focus:outline-none focus:ring-2 focus:ring-white rounded-full p-0 overflow-hidden"
+          aria-label={`View profile for ${displayName}`}
+        >
+          <img 
+            src={avatarUrl} 
+            alt={`${displayName}'s avatar`} 
+            className="w-8 h-8 md:w-10 md:h-10 rounded-full"
+          />
+        </button>
+        <button
           onClick={handleLogout}
-          className="hidden md:flex"
-        />
+          className="hidden md:flex focus:outline-none focus:ring-2 focus:ring-white rounded-full p-2"
+          aria-label="Sign out"
+        >
+          <FontAwesomeIcon icon={faSignOutAlt} className="text-lg md:text-xl" />
+        </button>
       </div>
     </div>
   );

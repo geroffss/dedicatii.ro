@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import CharlieTopBar from '../components/charlieTopBar';
 import Modal from 'react-modal';
 import { getDatabase, ref, onValue, get, child } from 'firebase/database';
@@ -27,7 +27,7 @@ export const toastStyle = {
   },
 };
 
-const CharliePage = () => {
+const CharlieProfile = () => {
   const [playlist, setPlaylist] = useState([]);
   const [currentSong, setCurrentSong] = useState(null);
   const [videoDetails, setVideoDetails] = useState(null);
@@ -38,14 +38,30 @@ const CharliePage = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [credits, setCredits] = useState(0);
-  const [searchTerm, setSearchTerm] = useState(''); // Track search input
-  const [isCurrentSongVisible, setIsCurrentSongVisible] = useState(false); //visibility state for currently playing page
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isCurrentSongVisible, setIsCurrentSongVisible] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
   const [isCategoriesView, setIsCategoriesView] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const uid = window.location.pathname.split('/')[2];
 
-  useEffect(() => {
+  const observer = useRef();
+  const lastSongElementRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          loadMoreSongs();
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
 
+  useEffect(() => {
     if (uid) {
       const db = getDatabase();
       const playlistRef = ref(db, `nova/${uid}/playlistID`);
@@ -74,7 +90,6 @@ const CharliePage = () => {
       playlistRef,
       (snapshot) => {
         const data = snapshot.val();
-        console.log(data, 'data');
         setCurrentQueue(data.currentQueue);
         if (data) {
           const songs = data.songs ? Object.values(data.songs) : [];
@@ -94,7 +109,7 @@ const CharliePage = () => {
   };
 
   const fetchPossibleQueue = async (uid) => {
-    // debugger
+    setLoading(true);
     const db = getDatabase(app);
     const categories = ref(db, `nova/${uid}/categories`);
     const snapshot = await get(categories);
@@ -107,13 +122,35 @@ const CharliePage = () => {
       const categorySnapshot = await get(categoryRef);
       if (categorySnapshot.exists()) {
         const result = categorySnapshot.val();
-        combinedData[category] = result;
+        combinedData[category] = result.slice(0, 10); // Load first 10 songs initially
       }
     }
 
-    console.log(combinedData, 'combinedData');
     setPossibleQueue(combinedData);
-    setFilteredQueue(combinedData); // Initialize the filteredQueue with the full possibleQueue
+    setFilteredQueue(combinedData);
+    setLoading(false);
+  };
+
+  const loadMoreSongs = () => {
+    setLoading(true);
+    const newFilteredQueue = { ...filteredQueue };
+    let loadedMore = false;
+
+    Object.keys(newFilteredQueue).forEach((category) => {
+      const currentLength = newFilteredQueue[category].length;
+      const newSongs = possibleQueue[category].slice(currentLength, currentLength + 10);
+      if (newSongs.length > 0) {
+        newFilteredQueue[category] = [...newFilteredQueue[category], ...newSongs];
+        loadedMore = true;
+      }
+    });
+
+    if (loadedMore) {
+      setFilteredQueue(newFilteredQueue);
+    } else {
+      setHasMore(false);
+    }
+    setLoading(false);
   };
 
   const fetchVideoDetails = async (videoId) => {
@@ -151,8 +188,7 @@ const CharliePage = () => {
     }
   };
 
-  const addVideoToQueue = async (video
-  ) => {
+  const addVideoToQueue = async (video) => {
     const functions = getFunctions(app, 'europe-central2');
     const urlPath = window.location.pathname;
     const pathParts = urlPath.split('/');
@@ -231,10 +267,6 @@ const CharliePage = () => {
             (isCurrentSongVisible || isCategoriesView) && 'hidden'
           }`}
         >
-          <div className="font-inter w-full text-2xl font-bold text-white my-2">
-            Melodii disponibile
-          </div>
-
           <div className="bg-t-bg-rectangle-14tvector-caut-omelodie z-0 flex items-center w-full bg-cover bg-center py-2 px-4 text-left justify-center">
             <div className="z-2 flex items-center justify-center w-full bg-white bg-opacity-10 rounded-2xl px-4 py-2 mt-1">
               <FontAwesomeIcon icon={faSearch} className="text-white" />
@@ -242,8 +274,8 @@ const CharliePage = () => {
                 className="font-inter text-center flex min-w-0 flex-grow text-xl placeholder:text-[#A4A4A4] bg-transparent outline-none text-white"
                 placeholder={!searchFocus && 'Caută o melodie...'}
                 type="text"
-                value={searchTerm} // Bind searchTerm to the input field
-                onChange={handleSearch} // Call handleSearch on input change
+                value={searchTerm}
+                onChange={handleSearch}
                 onFocus={() => setSearchFocus(true)}
                 onBlur={() => setSearchFocus(false)}
               />
@@ -259,16 +291,23 @@ const CharliePage = () => {
                       {category}
                     </h2>
 
-                    {/* Horizontal scrolling container */}
                     <div className="overflow-x-auto scrollbar-hide pb-2 w-full">
                       <div className="flex gap-4 w-max">
-                        {filteredQueue[category].map((video) =>
+                        {filteredQueue[category].map((video, index) =>
                           video ? (
-                            <SongCard
+                            <div
                               key={video.title}
-                              song={video}
-                              onClick={() => openDedicateModal(video)}
-                            />
+                              ref={
+                                index === filteredQueue[category].length - 1
+                                  ? lastSongElementRef
+                                  : null
+                              }
+                            >
+                              <SongCard
+                                song={video}
+                                onClick={() => openDedicateModal(video)}
+                              />
+                            </div>
                           ) : null
                         )}
                       </div>
@@ -277,6 +316,7 @@ const CharliePage = () => {
                 ))}
               </div>
             )}
+            {loading && <p className="text-white">Loading more songs...</p>}
           </div>
         </motion.div>
 
@@ -334,4 +374,4 @@ const CharliePage = () => {
   );
 };
 
-export default CharliePage;
+export default CharlieProfile;
