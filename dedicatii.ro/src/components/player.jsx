@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactPlayer from 'react-player/youtube';
-import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBackward, faPlay, faPause, faForward } from '@fortawesome/free-solid-svg-icons';
 import { auth, database } from '../firebaseconfig';
-import { ref, get, set, remove } from 'firebase/database';
+import { ref, onValue, get, set, remove } from 'firebase/database';
 
 function PlayerComponent({ onSongChange }) {
   const [playlist, setPlaylist] = useState([]);
@@ -17,7 +16,6 @@ function PlayerComponent({ onSongChange }) {
   const [currentTitle, setCurrentTitle] = useState('Title Placeholder');
   const [currentArtist, setCurrentArtist] = useState('Artist Placeholder');
   const [currentThumbnail, setCurrentThumbnail] = useState('https://via.placeholder.com/150');
-  const [accessToken, setAccessToken] = useState(null);
   const playerRef = useRef(null);
 
   useEffect(() => {
@@ -25,23 +23,13 @@ function PlayerComponent({ onSongChange }) {
       if (user) {
         const uid = user.uid;
         const playlistRef = ref(database, `nova/${uid}/playlistID`);
-        const tokenRef = ref(database, `nova/${uid}/token`);
         try {
-          const [playlistSnapshot, tokenSnapshot] = await Promise.all([
-            get(playlistRef),
-            get(tokenRef)
-          ]);
+          const playlistSnapshot = await get(playlistRef);
           if (playlistSnapshot.exists()) {
             setPlaylistID(playlistSnapshot.val());
             console.log('Playlist ID fetched from database');
           } else {
             console.error('Playlist ID not found in database');
-          }
-          if (tokenSnapshot.exists()) {
-            setAccessToken(tokenSnapshot.val());
-            console.log('Access token fetched from database');
-          } else {
-            console.error('Access token not found in database');
           }
         } catch (error) {
           console.error('Error fetching data', error);
@@ -55,113 +43,83 @@ function PlayerComponent({ onSongChange }) {
   }, []);
 
   useEffect(() => {
-    if (playlistID && accessToken) {
-      const fetchPlaylist = async () => {
-        try {
-          const response = await axios.get('https://www.googleapis.com/youtube/v3/playlistItems', {
-            params: {
-              part: 'snippet',
-              maxResults: 500,
-              playlistId: playlistID,
-            },
-            headers: {
-              'Authorization': `Bearer ${accessToken}`
-            }
-          });
-          setPlaylist(response.data.items);
-        } catch (error) {
-          console.error('Error fetching playlist', error);
-          if (error.response && error.response.status === 401) {
-            console.error('Access token may have expired. Please re-authenticate.');
-            // Here you might want to implement a token refresh mechanism
-          }
-        }
-      };
+    if (playlistID && auth.currentUser) {
+      const uid = auth.currentUser.uid;
+      const playlistRef = ref(database, `playlistNova/${uid}/${playlistID}`);
 
-      fetchPlaylist();
+      const unsubscribe = onValue(playlistRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const playlistData = snapshot.val();
+          setPlaylist(Object.values(playlistData));
+        } else {
+          console.error('Playlist not found in database');
+        }
+      });
+
+      return () => unsubscribe();
     }
-  }, [playlistID, accessToken]);
+  }, [playlistID]);
 
   useEffect(() => {
-    if (auth.currentUser && accessToken) {
-      const uid = auth.currentUser.uid;
-      const currentSongRef = ref(database, `nova/${uid}/currentSong`);
-
-      const fetchCurrentSongDetails = async () => {
-        try {
-          const currentSongSnap = await get(currentSongRef);
-          if (currentSongSnap.exists()) {
-            const videoId = currentSongSnap.val();
-            setCurrentVideoId(videoId);
-
-            // Fetch video details from YouTube API
-            const response = await axios.get('https://www.googleapis.com/youtube/v3/videos', {
-              params: {
-                part: 'snippet',
-                id: videoId,
-              },
-              headers: {
-                'Authorization': `Bearer ${accessToken}`
-              }
-            });
-
-            const videoData = response.data.items[0];
-            const rawTitle = videoData.snippet.title.split(' - ')[1];
-            const cleanedTitle = rawTitle.replace(/official video|music video|lyrics|official music video/gi, '').trim();
-            setCurrentTitle(cleanedTitle);         
-            setCurrentArtist(videoData.snippet.channelTitle);
-            setCurrentThumbnail(videoData.snippet.thumbnails.default.url);
-          } else {
-            console.error('Current song not found in database');
-          }
-        } catch (error) {
-          console.error('Error fetching current song details', error);
-        }
-      };
-
-      fetchCurrentSongDetails();
+    if (playlist.length > 0) {
+      const currentSong = playlist[currentVideoIndex];
+      setCurrentVideoId(currentSong.videoID);
+      setCurrentTitle(currentSong.title);
+      setCurrentArtist(currentSong.artist);
+      setCurrentThumbnail(currentSong.thumbnail);
     }
-  }, [currentVideoId, accessToken]);
+  }, [currentVideoIndex, playlist]);
 
   useEffect(() => {
     if (playlist.length > 0 && onSongChange && playlistID) {
-      const currentVideoId = playlist[currentVideoIndex]?.snippet?.resourceId?.videoId;
+      const currentVideoId = playlist[currentVideoIndex]?.videoID;
       const uid = auth.currentUser?.uid;
       if (uid && currentVideoId) {
         const currentSongRef = ref(database, `nova/${uid}/currentSong`);
-        set(currentSongRef, currentVideoId);
 
-        onSongChange(playlistID, currentVideoId);
-        setCurrentVideoId(currentVideoId);
+        remove(currentSongRef)
+          .then(() => {
+            set(currentSongRef, currentVideoId);
+            onSongChange(playlistID, currentVideoId);
+            setCurrentVideoId(currentVideoId);
+          })
+          .catch((error) => {
+            console.error('Error removing current song:', error);
+          });
       }
     }
   }, [currentVideoIndex, playlist, playlistID, onSongChange]);
 
-  const playNextOrNextInPlaylist = async () => {
+    const playNextOrNextInPlaylist = async () => {
     if (auth.currentUser) {
       const uid = auth.currentUser.uid;
       const nextSongRef = ref(database, `nova/${uid}/nextSong`);
-
+      const currentSongRef = ref(database, `nova/${uid}/currentSong`);
+  
       try {
         const nextSongSnapshot = await get(nextSongRef);
         let nextSongId = null;
-
+  
         if (nextSongSnapshot.exists()) {
           nextSongId = nextSongSnapshot.val();
           console.log(`Next song ID from database: ${nextSongId}`);
-          await remove(nextSongRef); // Remove the nextSong entry after getting it
+          await remove(nextSongRef);
         } else {
-          // If nextSong doesn't exist, move to the next song in the playlist
           let nextIndex = (currentVideoIndex + 1) % playlist.length;
-          nextSongId = playlist[nextIndex]?.snippet?.resourceId?.videoId;
+          nextSongId = playlist[nextIndex]?.videoID;
           setCurrentVideoIndex(nextIndex);
-          console.log(`Playing next song in playlist: ${playlist[nextIndex]?.snippet?.title}`);
+          console.log(`Playing next song in playlist: ${playlist[nextIndex]?.title}`);
         }
-
+  
         if (nextSongId) {
-          setCurrentVideoId(nextSongId); // Update the currentVideoId to play the next song
-          const currentSongRef = ref(database, `nova/${uid}/currentSong`);
+          // First, remove the current song
+          await remove(currentSongRef);
+  
+          // Then, set the new current song
           await set(currentSongRef, nextSongId);
+  
+          // Update the local state
+          setCurrentVideoId(nextSongId);
         } else {
           console.error('No next song ID available to set as current song.');
         }
@@ -182,7 +140,7 @@ function PlayerComponent({ onSongChange }) {
     if (playlist.length > 0) {
       let prevIndex = (currentVideoIndex - 1 + playlist.length) % playlist.length;
       setCurrentVideoIndex(prevIndex);
-      console.log('Previous video', playlist[prevIndex].snippet.title);
+      console.log('Previous video', playlist[prevIndex].title);
     }
   };
 
@@ -229,7 +187,7 @@ function PlayerComponent({ onSongChange }) {
             <div className="text-sm md:text-base font-light">{currentArtist}</div>
           </div>
           <div className="md:w-1/2 w-full flex flex-col items-center">
-            <ul className="playlist bg-dedicatii-bg3 h-80 md:h-72 p-4 rounded-lg overflow-y-auto w-full">
+            <ul className="playlist bg-dedicatii-bg3 h-80 md:h-72 p-4 rounded-lg overflow-auto w-full">
               {playlist.map((item, index) => (
                 <li
                   key={index}
@@ -237,8 +195,8 @@ function PlayerComponent({ onSongChange }) {
                   onClick={() => setCurrentVideoIndex(index)}
                 >
                   <div className="flex items-center gap-2">
-                    <img className="w-12 h-12 object-cover" src={item.snippet.thumbnails.default.url} alt={item.snippet.title} />
-                    <span>{item.snippet.title}</span>
+                    <img className="w-12 h-12 object-cover" src={item.thumbnail} alt={item.title} />
+                    <span>{item.title}</span>
                   </div>
                 </li>
               ))}
