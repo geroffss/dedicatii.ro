@@ -39,7 +39,6 @@ const ImportComp = () => {
     try {
       const result = await importPlaylist({ playlist: playlistLink });
       console.log("Playlist imported successfully:", result.data);
-      window.location.reload();
     } catch (error) {
       console.error("Error importing playlist:", error);
     }

@@ -27,7 +27,7 @@ export const toastStyle = {
   },
 };
 
-const CharlieProfile = () => {
+const CharliePage = () => {
   const [playlist, setPlaylist] = useState([]);
   const [currentSong, setCurrentSong] = useState(null);
   const [videoDetails, setVideoDetails] = useState(null);
@@ -85,18 +85,27 @@ const CharlieProfile = () => {
   const fetchPlaylist = (playlistID, uid) => {
     const db = getDatabase(app);
     const playlistRef = ref(db, `nova/${uid}`);
-
+  
     onValue(
       playlistRef,
       (snapshot) => {
         const data = snapshot.val();
-        setCurrentQueue(data.currentQueue);
+        console.log('Fetched data:', data);
+  
         if (data) {
+          setCurrentQueue(data.currentQueue || []);
           const songs = data.songs ? Object.values(data.songs) : [];
           setPlaylist(songs);
           setCurrentSong(data.currentSong || null);
+  
           if (data.currentSong) {
-            fetchVideoDetails(data.currentSong).then(setVideoDetails);
+            fetchVideoDetails(data.currentSong)
+              .then((details) => {
+                setVideoDetails(details);
+              })
+              .catch((error) => {
+                console.error('Error fetching video details:', error);
+              });
           }
         } else {
           console.log('No data found for this playlist.');
@@ -374,4 +383,4 @@ const CharlieProfile = () => {
   );
 };
 
-export default CharlieProfile;
+export default CharliePage;
