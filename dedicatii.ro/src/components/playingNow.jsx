@@ -32,10 +32,10 @@ export const PlayingNow = ({ queue }) => {
             className="h-[264px] w-[260px] mt-2 rounded object-cover"
           />
           <div className="current-song text-center">
-            <p className="text-[40px] text-white mt-2">
+            <p className="text-3xl font-bold text-white mt-2">
               {queue.songs[0].title}
             </p>
-            <p className="text-[40px] text-white font-light mb-4 mt-2">
+            <p className="text-1xl text-white font-light mb-4 mt-2">
               {queue.songs[0].artist}
             </p>
           </div>
@@ -43,14 +43,12 @@ export const PlayingNow = ({ queue }) => {
 
         {/* queued songs list */}
         <div className="flex">
-          <p className="text-xl font-bold text-white text-start ml-4 mt-8">
+          <p className="text-xl font-bold text-white text-start mt-4">
             Melodii în rând
           </p>
-          <p className="text-xl font-light text-white text-start ml-4 mt-8">
-            Și încă {queue.remaining}
-          </p>
+          
         </div>
-        <div className="flex flex-col w-full mt-2 gap-0.5">
+        <div className="flex flex-col w-full mt-2 gap-0.5 ">
           {/* queued songs */}
           {queue.songs?.slice(1).map((song, index) => (
             <div
@@ -77,7 +75,12 @@ export const PlayingNow = ({ queue }) => {
                 </div>
               )}
             </div>
+            
           ))}
+          <>
+          <p className="text-xl font-light text-white text-start">
+            + {queue.remaining} dedicații
+          </p></>
         </div>
       </motion.div>
     );

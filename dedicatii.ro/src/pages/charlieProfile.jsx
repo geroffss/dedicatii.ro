@@ -130,17 +130,18 @@ const CharlieProfile = () => {
 
   return (
     <div className="text-center bg-dedicatii-bg2 min-h-screen">
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <CharlieTopBar />
+              <CharlieTopBar />
+
+      <div className=" top-0 left-0 right-0 z-50">
       </div>
 
       <motion.div
         initial={animation.initial}
         animate={animation.animate}
         exit={animation.exit}
-        className="flex flex-col items-center p-4 mt-12 pt-5"
+        className="flex flex-col items-center p-4 pt-5"
       >
-        <h1 className="text-3xl font-bold text-white mb-6">Profilul meu</h1>
+        <h1 className="text-3xl font-bold text-white mb-6 mt-12">Profilul meu</h1>
 
         {userProfile && (
           <div className="bg-white bg-opacity-10 rounded-lg p-6 w-full max-w-md">

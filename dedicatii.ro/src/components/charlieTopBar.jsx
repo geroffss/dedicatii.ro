@@ -75,7 +75,7 @@ const CharlieTopBar = ({ handleCategoriesClick }) => {
   };
 
   return (
-    <div className="relative flex items-center bg-[#524C5D] p-2">
+    <div className="fixed w-full flex items-center bg-[#524C5D] p-2">
       <div className="text-white block md:hidden">
         <button 
           onClick={toggleMenu} 

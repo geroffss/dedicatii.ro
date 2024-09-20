@@ -170,6 +170,11 @@ function PlayerComponent({ onSongChange }) {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const setNextSong = () => {
+    
+  }
+
+  
   return (
     <div className="player p-6 text-white m-4 bg-dedicatii-bg rounded-lg">
       <h2 className="text-3xl font-bold mb-6 text-center">Now Playing</h2>
@@ -192,7 +197,6 @@ function PlayerComponent({ onSongChange }) {
                 <li
                   key={index}
                   className={`mb-2 cursor-pointer hover:bg-gray-600 p-2 rounded ${index === currentVideoIndex ? 'bg-gray-800' : ''}`}
-                  onClick={() => setCurrentVideoIndex(index)}
                 >
                   <div className="flex items-center gap-2">
                     <img className="w-12 h-12 object-cover" src={item.thumbnail} alt={item.title} />
