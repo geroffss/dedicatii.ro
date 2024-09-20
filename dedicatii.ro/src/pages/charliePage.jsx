@@ -24,7 +24,7 @@ export const toastStyle = {
     background: '#333',
     color: '#fff',
     marginBottom: '84px',
-  },
+  }
 };
 
 const CharliePage = () => {

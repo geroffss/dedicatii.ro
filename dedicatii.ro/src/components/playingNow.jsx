@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import { faStar } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useEffect } from 'react';
+import starIcon from '../starIcon.svg'
 
 const animationVariants = {
   initial: {y: 1000, opacity: 0.5},
@@ -18,10 +20,14 @@ const albumArtAnimation = {
 
 export const PlayingNow = ({ queue }) => {
 
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [])
+
     return (
       <motion.div
         {...animationVariants}
-        className="bg-dedicatii-bg2 h-[63rem] w-full absolute top-[56px] left-0 z-10 p-4"
+        className="bg-dedicatii-bg2 h-[63rem] w-full absolute top-[56px] left-0 z-10 px-4"
       >
         {/* playing now card */}
         <div className="flex flex-col items-center justify-center w-full h-[456px] bg-[#D9D9D9] bg-opacity-10 rounded-md mt-2">
@@ -32,10 +38,10 @@ export const PlayingNow = ({ queue }) => {
             className="h-[264px] w-[260px] mt-2 rounded object-cover"
           />
           <div className="current-song text-center">
-            <p className="text-3xl font-bold text-white mt-2">
+            <p className="text-[40px] text-white mt-2 leading-[40px] px-2">
               {queue.songs[0].title}
             </p>
-            <p className="text-1xl text-white font-light mb-4 mt-2">
+            <p className="text-[30px] text-white font-light mb-4 mt-2">
               {queue.songs[0].artist}
             </p>
           </div>
@@ -61,16 +67,17 @@ export const PlayingNow = ({ queue }) => {
                 className="h-[49px] w-[49px] object-cover"
               />
               <div className="text-start">
-                <p className="text-white font-bold">{song.title}</p>
+                <p className="text-white font-bold leading-[15px]">{song.title}</p>
                 <p className="text-white font-light">{song.artist}</p>
               </div>
               {song.dedicatie && (
                 <div className="flex flex-col items-center ml-auto mr-2">
-                  <FontAwesomeIcon
+                  <img src={starIcon} alt='Dedicate Icon' className="w-[37px] h-[37px]" />
+                  {/* <FontAwesomeIcon
                     icon={faStar}
                     color="white"
                     className="w-[37px] h-[37px]"
-                  />
+                  /> */}
                   <p className="text-white text-[10px]">Dedicație</p>
                 </div>
               )}
