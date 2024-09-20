@@ -131,7 +131,7 @@ const CharliePage = () => {
       const categorySnapshot = await get(categoryRef);
       if (categorySnapshot.exists()) {
         const result = categorySnapshot.val();
-        combinedData[category] = result.slice(0, 10); // Load first 10 songs initially
+        combinedData[category] = result;
       }
     }
 
@@ -272,7 +272,7 @@ const CharliePage = () => {
 
         <motion.div
           {...animation}
-          className={`flex items-center flex-col p-4 mt-10 pt-5 ${
+          className={`flex items-center flex-col py-4 mt-10 pt-5 ${
             (isCurrentSongVisible || isCategoriesView) && 'hidden'
           }`}
         >
@@ -305,7 +305,7 @@ const CharliePage = () => {
                         {filteredQueue[category].map((video, index) =>
                           video ? (
                             <div
-                              key={video.title}
+                              key={video.videoID}
                               ref={
                                 index === filteredQueue[category].length - 1
                                   ? lastSongElementRef
