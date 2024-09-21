@@ -9,7 +9,6 @@ function PlayerComponent({ onSongChange }) {
   const [playlist, setPlaylist] = useState([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [playlistID, setPlaylistID] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentVideoId, setCurrentVideoId] = useState(null);
@@ -19,46 +18,38 @@ function PlayerComponent({ onSongChange }) {
   const playerRef = useRef(null);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        const uid = user.uid;
-        const playlistRef = ref(database, `nova/${uid}/playlistID`);
+    const fetchPlaylistData = async () => {
+      if (auth.currentUser) {
+        const uid = auth.currentUser.uid;
+        const playlistIdRef = ref(database, `nova/${uid}/playlistID`);
         try {
-          const playlistSnapshot = await get(playlistRef);
-          if (playlistSnapshot.exists()) {
-            setPlaylistID(playlistSnapshot.val());
-            console.log('Playlist ID fetched from database');
+          const playlistIdSnapshot = await get(playlistIdRef);
+          if (playlistIdSnapshot.exists()) {
+            const playlistId = playlistIdSnapshot.val();
+            const playlistRef = ref(database, `playlistNova/${uid}/${playlistId}`);
+            onValue(playlistRef, (snapshot) => {
+              if (snapshot.exists()) {
+                const playlistData = snapshot.val();
+                const songList = Object.entries(playlistData).map(([key, value]) => ({
+                  id: key,
+                  ...value
+                }));
+                setPlaylist(songList);
+              } else {
+                console.error('Playlist not found in database');
+              }
+            });
           } else {
             console.error('Playlist ID not found in database');
           }
         } catch (error) {
-          console.error('Error fetching data', error);
+          console.error('Error fetching playlist data:', error);
         }
-      } else {
-        console.error('User not authenticated');
       }
-    });
+    };
 
-    return () => unsubscribe();
+    fetchPlaylistData();
   }, []);
-
-  useEffect(() => {
-    if (playlistID && auth.currentUser) {
-      const uid = auth.currentUser.uid;
-      const playlistRef = ref(database, `playlistNova/${uid}/${playlistID}`);
-
-      const unsubscribe = onValue(playlistRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const playlistData = snapshot.val();
-          setPlaylist(Object.values(playlistData));
-        } else {
-          console.error('Playlist not found in database');
-        }
-      });
-
-      return () => unsubscribe();
-    }
-  }, [playlistID]);
 
   useEffect(() => {
     if (playlist.length > 0) {
@@ -67,30 +58,28 @@ function PlayerComponent({ onSongChange }) {
       setCurrentTitle(currentSong.title);
       setCurrentArtist(currentSong.artist);
       setCurrentThumbnail(currentSong.thumbnail);
+      updateCurrentSongInDatabase(currentSong.videoID);
     }
   }, [currentVideoIndex, playlist]);
 
-  useEffect(() => {
-    if (playlist.length > 0 && onSongChange && playlistID) {
-      const currentVideoId = playlist[currentVideoIndex]?.videoID;
-      const uid = auth.currentUser?.uid;
-      if (uid && currentVideoId) {
-        const currentSongRef = ref(database, `nova/${uid}/currentSong`);
-
-        remove(currentSongRef)
-          .then(() => {
-            set(currentSongRef, currentVideoId);
-            onSongChange(playlistID, currentVideoId);
-            setCurrentVideoId(currentVideoId);
-          })
-          .catch((error) => {
-            console.error('Error removing current song:', error);
-          });
+  const updateCurrentSongInDatabase = async (videoId) => {
+    if (auth.currentUser) {
+      const uid = auth.currentUser.uid;
+      const currentSongRef = ref(database, `nova/${uid}/currentSong`);
+      try {
+        await remove(currentSongRef);
+        await set(currentSongRef, videoId);
+        console.log('Current song updated in database:', videoId);
+        if (typeof onSongChange === 'function') {
+          onSongChange(videoId);
+        }
+      } catch (error) {
+        console.error('Error updating current song in database:', error);
       }
     }
-  }, [currentVideoIndex, playlist, playlistID, onSongChange]);
+  };
 
-    const playNextOrNextInPlaylist = async () => {
+  const playNextOrNextInPlaylist = async () => {
     if (auth.currentUser) {
       const uid = auth.currentUser.uid;
       const nextSongRef = ref(database, `nova/${uid}/nextSong`);
@@ -112,13 +101,8 @@ function PlayerComponent({ onSongChange }) {
         }
   
         if (nextSongId) {
-          // First, remove the current song
           await remove(currentSongRef);
-  
-          // Then, set the new current song
           await set(currentSongRef, nextSongId);
-  
-          // Update the local state
           setCurrentVideoId(nextSongId);
         } else {
           console.error('No next song ID available to set as current song.');
@@ -140,7 +124,6 @@ function PlayerComponent({ onSongChange }) {
     if (playlist.length > 0) {
       let prevIndex = (currentVideoIndex - 1 + playlist.length) % playlist.length;
       setCurrentVideoIndex(prevIndex);
-      console.log('Previous video', playlist[prevIndex].title);
     }
   };
 
@@ -170,11 +153,6 @@ function PlayerComponent({ onSongChange }) {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const setNextSong = () => {
-    
-  }
-
-  
   return (
     <div className="player p-6 text-white m-4 bg-dedicatii-bg rounded-lg">
       <h2 className="text-3xl font-bold mb-6 text-center">Now Playing</h2>
@@ -195,8 +173,8 @@ function PlayerComponent({ onSongChange }) {
             <ul className="playlist bg-dedicatii-bg3 h-80 md:h-72 p-4 rounded-lg overflow-auto w-full">
               {playlist.map((item, index) => (
                 <li
-                  key={index}
-                  className={`mb-2 cursor-pointer hover:bg-gray-600 p-2 rounded ${index === currentVideoIndex ? 'bg-gray-800' : ''}`}
+                  key={item.id}
+                  className={`mb-2 p-2 rounded ${index === currentVideoIndex ? 'bg-gray-800' : ''}`}
                 >
                   <div className="flex items-center gap-2">
                     <img className="w-12 h-12 object-cover" src={item.thumbnail} alt={item.title} />

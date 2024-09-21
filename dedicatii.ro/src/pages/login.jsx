@@ -23,8 +23,25 @@ const Login = () => {
         try {
             const result = await signInWithPopup(auth, provider);
             const credential = GoogleAuthProvider.credentialFromResult(result);
-            const token = credential.accessToken; 
+            const accessToken = credential.accessToken;
+            const refreshToken = result.user.refreshToken;
             const user = result.user;
+
+            // Calculate token expiration (default to 1 hour if not provided)
+            const expiresIn = credential.expirationTime ? credential.expirationTime : 3600;
+            const expirationDate = new Date(Date.now() + expiresIn * 1000);
+            
+            // Format the expiration date as a local date and time string
+            const formattedExpirationDate = expirationDate.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+
             console.log('User Info:', user);
 
             const db = getFirestore();
@@ -45,12 +62,17 @@ const Login = () => {
                     window.location.href = '/main';
                 }
             }
+
             const realtimeDb = getDatabase();
             const tokenRef = ref(realtimeDb, `nova/${user.uid}/token`);
-            await set(tokenRef, token);
-            console.log('Token successfully set in Realtime Database');
-            fetchYouTubeData(token);
-            
+            await set(tokenRef, {
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+                expirationDate: formattedExpirationDate
+            });
+            console.log('Access Token, Refresh Token, and Expiration Date successfully set in Realtime Database');
+
+            fetchYouTubeData(accessToken);
 
         } catch (error) {
             console.error('Error during sign-in:', error);
