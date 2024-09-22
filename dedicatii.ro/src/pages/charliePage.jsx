@@ -190,7 +190,7 @@ const CharliePage = () => {
   };
 
   const addVideoToQueue = async (video) => {
-    const functions = getFunctions(app, 'europe-central2');
+    const functions = getFunctions(app, 'europe-west1');
     const urlPath = window.location.pathname;
     const pathParts = urlPath.split('/');
     const uid = pathParts[2];
