@@ -27,20 +27,8 @@ const Login = () => {
             const refreshToken = result.user.refreshToken;
             const user = result.user;
 
-            // Calculate token expiration (default to 1 hour if not provided)
-            const expiresIn = credential.expirationTime ? credential.expirationTime : 3600;
-            const expirationDate = new Date(Date.now() + expiresIn * 1000);
-            
-            // Format the expiration date as a local date and time string
-            const formattedExpirationDate = expirationDate.toLocaleString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            });
+            // Use the expiration time as provided by the credential
+            const expirationTime = credential.expirationTime;
 
             console.log('User Info:', user);
 
@@ -68,9 +56,9 @@ const Login = () => {
             await set(tokenRef, {
                 accessToken: accessToken,
                 refreshToken: refreshToken,
-                expirationDate: formattedExpirationDate
+                expirationTime: expirationTime
             });
-            console.log('Access Token, Refresh Token, and Expiration Date successfully set in Realtime Database');
+            console.log('Access Token, Refresh Token, and Expiration Time successfully set in Realtime Database');
 
             fetchYouTubeData(accessToken);
 
