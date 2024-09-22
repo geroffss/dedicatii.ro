@@ -5,7 +5,7 @@ import { app } from '../firebaseconfig.js';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import QrReader from 'react-qr-scanner';
 import toast from 'react-hot-toast';
-import { toastStyle } from '../pages/charliePage.jsx';
+import { toastStyle } from './toastStyle.js';
 
 const HamburgerMenu = ({ isOpen, toggleMenu, handleCategoriesClick }) => {
     const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);

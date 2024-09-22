@@ -13,19 +13,11 @@ import { PlayingNow } from '../components/playingNow';
 import { CategoriesView } from '../components/categoriesView';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SongCard } from '../components/songCard';
+import { toastStyle } from '../components/toastStyle';
 
 const API_KEY = 'AIzaSyA7Xj1W5mdDeAw2Aja47q6qa7zPPYZtT68';
 const DEFAULT_VIDEO_ID = 'C27NShgTQE';
 const DEFAULT_VIDEO_COUNT = 10;
-
-export const toastStyle = {
-  style: {
-    borderRadius: '10px',
-    background: '#333',
-    color: '#fff',
-    marginBottom: '84px',
-  }
-};
 
 const CharliePage = () => {
   const [playlist, setPlaylist] = useState([]);

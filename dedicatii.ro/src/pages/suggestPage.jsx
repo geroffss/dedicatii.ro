@@ -1,17 +1,36 @@
 import { useState } from "react";
 import CharlieTopBar from "../components/charlieTopBar";
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import profileIcon from '../profileIcon.svg';
 import musicNoteIcon from '../musicNoteIcon.svg';
+import { httpsCallable, getFunctions } from "firebase/functions";
+import { app } from '../firebaseconfig';
+import toast from 'react-hot-toast';
+import { toastStyle } from '../components/toastStyle';
 
 export const SuggestPage = () => {
   const [artistName, setArtistName] = useState('');
   const [songName, setSongName] = useState('');
+  const uid = window.location.pathname.split('/')[2];
 
   const onSuggestSongClick = async () => {
-    console.log('Suggesting song');
+    const functions = getFunctions(app, 'europe-central2');
+    const suggestSong = httpsCallable(functions, 'suggestSong');
+    toast.promise(
+      suggestSong({ novaID: uid, title: songName, artist: artistName }),
+      {
+        loading: 'Se adaugă în coadă...',
+        success: <b>Melodia a fost sugerată cu succes!</b>,
+        error: (
+          <b>
+            Ceva nu a mers bine.
+          </b>
+        ),
+      },
+      toastStyle
+    );
   }
+
+
   return (
     <div className={`text-center bg-dedicatii-bg2 min-h-screen`}>
       <div className="fixed top-0 left-0 right-0 z-50">
