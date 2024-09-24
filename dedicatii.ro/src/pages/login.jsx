@@ -15,60 +15,60 @@ const Login = () => {
     const provider = new GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/youtube.readonly');
     provider.addScope('https://www.googleapis.com/auth/youtube.force-ssl');
+const handleGoogleSignIn = async () => {
+  setLoading(true);
+  setError(null);
 
-    const handleGoogleSignIn = async () => {
-        setLoading(true);
-        setError(null);
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const accessToken = credential.accessToken;
+    const refreshToken = result.user.refreshToken;
+    const user = result.user;
 
-        try {
-            const result = await signInWithPopup(auth, provider);
-            const credential = GoogleAuthProvider.credentialFromResult(result);
-            const accessToken = credential.accessToken;
-            const refreshToken = result.user.refreshToken;
-            const user = result.user;
+    // Calculate token expiration (default to 1 hour if not provided)
+    const expiresIn = credential.expirationTime ? credential.expirationTime : 3600;
+    const expirationTime = Date.now() + expiresIn * 1000;
 
-            // Use the expiration time as provided by the credential
-            const expirationTime = credential.expirationTime;
+    console.log('User Info:', user);
 
-            console.log('User Info:', user);
+    const db = getFirestore();
+    const userDocRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
 
-            const db = getFirestore();
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists()) {
+      await setDoc(userDocRef, {
+        role: 'charlie',
+        email: user.email,
+      });
+      window.location.href = '/charlie';
+    } else {
+      const userData = userDoc.data();
+      if (userData.role === 'charlie') {
+        window.location.href = '/charlie';
+      } else if (userData.role === 'nova') {
+        window.location.href = '/main';
+      }
+    }
 
-            if (!userDoc.exists()) {
-                await setDoc(userDocRef, {
-                    role: 'charlie',
-                    email: user.email,
-                });
-                window.location.href = '/charlie';
-            } else {
-                const userData = userDoc.data();
-                if (userData.role === 'charlie') {
-                    window.location.href = '/charlie';
-                } else if (userData.role === 'nova') {
-                    window.location.href = '/main';
-                }
-            }
+    const realtimeDb = getDatabase();
+    const tokenRef = ref(realtimeDb, `nova/${user.uid}/token`);
+    await set(tokenRef, {
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      expirationTime: expirationTime
+    });
+    console.log('Access Token, Refresh Token, and Expiration Time successfully set in Realtime Database');
 
-            const realtimeDb = getDatabase();
-            const tokenRef = ref(realtimeDb, `nova/${user.uid}/token`);
-            await set(tokenRef, {
-                accessToken: accessToken,
-                refreshToken: refreshToken,
-                expirationTime: expirationTime
-            });
-            console.log('Access Token, Refresh Token, and Expiration Time successfully set in Realtime Database');
+    fetchYouTubeData(accessToken);
 
-            fetchYouTubeData(accessToken);
-
-        } catch (error) {
-            console.error('Error during sign-in:', error);
-            setError('Failed to sign in. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
+  } catch (error) {
+    console.error('Error during sign-in:', error);
+    setError('Failed to sign in. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
     const fetchYouTubeData = async (token) => {
         try {
