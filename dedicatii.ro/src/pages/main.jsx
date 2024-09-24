@@ -26,7 +26,7 @@ const Main = () => {
         {/* Main Content */}
         <div className="flex-1 flex flex-col md:ml-48"> {/* Add margin to offset the sidebar */}
           {/* Main Section */}
-          <div className="flex flex-col gap-5 h-fit">
+          <div className="flex flex-col gap-5">
             <PlayerComponent />
             <MainComp selectedMenu={selectedMenu} />
           </div>

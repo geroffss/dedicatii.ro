@@ -217,7 +217,7 @@ function PlayerComponent() {
 
   return (
     <div className="player p-6 text-white m-4 bg-dedicatii-bg rounded-lg shadow-xl">
-      <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-300px)]">
+      <div className="flex flex-col md:flex-row gap-6 h-fit">
         <div className="md:w-1/2 h-full flex flex-col">
           <div className="bg-dedicatii-bg3 flex flex-col items-center justify-center text-center p-4 rounded-lg flex-grow">
             <img
@@ -235,7 +235,7 @@ function PlayerComponent() {
             )}
           </div>
         </div>
-        <div className="md:w-1/2 flex flex-col h-72 md:h-full">
+        <div className="md:w-1/2 flex flex-col h-72 md:h-3/2">
           <div className="bg-dedicatii-bg3 p-4 rounded-lg flex-grow overflow-hidden flex flex-col">
             <h4 className="text-xl font-semibold mb-4">Playlist</h4>
             {nextSong && (

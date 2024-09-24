@@ -50,9 +50,6 @@ const CharlieTopBar = ({ selectedMenu, onMenuSelect }) => {
       <div className="text-xl text-white ml-2 md:ml-0 hidden md:block font-inter font-bold">
         Dedicatii.ro
       </div>
-      <div className="absolute left-1/2 transform -translate-x-1/2">
-        <img src={logo} alt="Logo" className="h-10" />
-      </div>
       <div className="ml-auto text-white flex items-center gap-5">
         <FontAwesomeIcon icon={faUser} />
         <FontAwesomeIcon icon={faSignOutAlt} onClick={handleLogout} className="hidden md:flex"/>
