@@ -45,17 +45,17 @@ const ImportComp = () => {
   };
 
   return (
-    <div className="code-gen-container bg-gray-900 text-white p-6 shadow-lg">
+    <div className="code-gen-container text-white items-center flex flex-col justify-center">
       <input
         type="text"
         placeholder="Enter YouTube Playlist Link"
         value={playlistLink}
         onChange={handleInputChange}
-        className="p-2 rounded-lg text-black w-full mb-4"
+        className="p-2 rounded-lg text-black mb-4 w-1/2"
       />
       <button
         onClick={handleSubmit}
-        className="bg-blue-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 w-full"
+        className="bg-blue-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-600"
       >
         Submit
       </button>
