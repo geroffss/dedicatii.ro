@@ -23,8 +23,6 @@ const handleGoogleSignIn = async () => {
     const result = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     const accessToken = credential.accessToken;
-    console.log(credential);
-    console.log(result.user);
     const refreshToken = result.user.refreshToken;
     const user = result.user;
 
