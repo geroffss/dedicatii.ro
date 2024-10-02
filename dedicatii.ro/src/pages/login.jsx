@@ -23,7 +23,7 @@ const handleGoogleSignIn = async () => {
     const result = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     const accessToken = credential.accessToken;
-    const refreshToken = result.user.refreshToken;
+    const refreshToken = result.user.getIDToken();
     const user = result.user;
 
     // Calculate token expiration (default to 1 hour if not provided)
