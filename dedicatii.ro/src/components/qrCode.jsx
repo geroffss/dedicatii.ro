@@ -17,8 +17,9 @@ const QrCode = () => {
   const generateQRCodeValue = useCallback(() => {
     if (uid) {
       const currentDomain = window.location.origin;
-      const url = `${currentDomain}/charlie/${uid}`;
-      const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(url)}&size=256x256`;
+      const redirectUrl = `${currentDomain}/charlie/${uid}`;
+      const loginUrl = `${currentDomain}/login?redirect=${encodeURIComponent(redirectUrl)}`;
+      const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(loginUrl)}&size=256x256`;
 
       setQrCodeUrl(qrCodeApiUrl);
     }

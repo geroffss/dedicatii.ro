@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { auth } from '../firebaseconfig'; // Adjust the path as necessary
+import React, { useState, useEffect } from 'react';
+import { auth } from '../firebaseconfig';
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { getDatabase, ref, set } from "firebase/database";
+import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../logo1.svg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
@@ -11,82 +12,67 @@ import LoginTopBar from '../components/loginTopBar';
 const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const provider = new GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/youtube.readonly');
-    provider.addScope('https://www.googleapis.com/auth/youtube.force-ssl');
-const handleGoogleSignIn = async () => {
-  setLoading(true);
-  setError(null);
 
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const credential = GoogleAuthProvider.credentialFromResult(result);
-    const accessToken = credential.accessToken;
-    const refreshToken = result.user.getIDToken();
-    const user = result.user;
+    useEffect(() => {
+        const urlParams = new URLSearchParams(location.search);
+        const redirect = urlParams.get('redirect');
+        if (redirect) {
+            localStorage.setItem('redirectAfterLogin', redirect);
+        }
+    }, [location]);
 
-    // Calculate token expiration (default to 1 hour if not provided)
-    const expiresIn = credential.expirationTime ? credential.expirationTime : 3600;
-    const expirationTime = Date.now() + expiresIn * 1000;
+    const handleGoogleSignIn = async () => {
+        setLoading(true);
+        setError(null);
 
-    console.log('User Info:', user);
-
-    const db = getFirestore();
-    const userDocRef = doc(db, 'users', user.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    if (!userDoc.exists()) {
-      await setDoc(userDocRef, {
-        role: 'charlie',
-        email: user.email,
-      });
-      window.location.href = '/charlie';
-    } else {
-      const userData = userDoc.data();
-      if (userData.role === 'charlie') {
-        window.location.href = '/charlie';
-      } else if (userData.role === 'nova') {
-        window.location.href = '/main';
-      }
-    }
-
-    const realtimeDb = getDatabase();
-    const tokenRef = ref(realtimeDb, `nova/${user.uid}/token`);
-    await set(tokenRef, {
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-      expirationTime: expirationTime
-    });
-    console.log('Access Token, Refresh Token, and Expiration Time successfully set in Realtime Database');
-
-    fetchYouTubeData(accessToken);
-
-  } catch (error) {
-    console.error('Error during sign-in:', error);
-    setError('Failed to sign in. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
-
-    const fetchYouTubeData = async (token) => {
         try {
-            const response = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch YouTube data');
+            console.log('User Info:', user);
+
+            const db = getFirestore();
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userDocRef);
+
+            if (!userDoc.exists()) {
+                await setDoc(userDocRef, {
+                    role: 'charlie',
+                    email: user.email,
+                });
             }
 
-            const data = await response.json();
-            console.log('YouTube Channel Data:', data);
+            const realtimeDb = getDatabase();
+            const userRef = ref(realtimeDb, `nova/${user.uid}`);
+            await set(userRef, {
+                email: user.email,
+                displayName: user.displayName,
+                lastLogin: new Date().toISOString()
+            });
+            console.log('User data successfully set in Realtime Database');
+
+            const redirectUrl = localStorage.getItem('redirectAfterLogin');
+            if (redirectUrl) {
+                localStorage.removeItem('redirectAfterLogin');
+                window.location.href = redirectUrl;
+            } else {
+                const userData = userDoc.exists() ? userDoc.data() : { role: 'charlie' };
+                if (userData.role === 'charlie') {
+                    navigate('/charlie');
+                } else if (userData.role === 'nova') {
+                    navigate('/main');
+                }
+            }
+
         } catch (error) {
-            console.error('Error fetching YouTube data:', error);
-            setError('Failed to fetch YouTube data. Please try again.');
+            console.error('Error during sign-in:', error);
+            setError('Failed to sign in. Please try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
