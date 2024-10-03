@@ -7,7 +7,7 @@ import { getDatabase } from 'firebase/database';
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: 'AIzaSyBjwUYt26McQIYlbHlRHABejWGSZI8GlgQ',
-  authDomain: 'dedicatiiro-86d49.firebaseapp.com',
+  authDomain: 'dedicații.ro',
   databaseURL:
     'https://dedicatiiro-86d49-default-rtdb.europe-west1.firebasedatabase.app',
   projectId: 'dedicatiiro-86d49',
