@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { auth } from '../firebaseconfig';
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { getDatabase, ref, set } from "firebase/database";
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -14,8 +13,7 @@ const Login = () => {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
-
-    const provider = new GoogleAuthProvider();
+    const auth = getAuth();
 
     useEffect(() => {
         const urlParams = new URLSearchParams(location.search);
@@ -30,6 +28,7 @@ const Login = () => {
         setError(null);
 
         try {
+            const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
