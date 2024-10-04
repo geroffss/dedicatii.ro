@@ -1,10 +1,11 @@
 import React from "react";
 import Logout from "./logout";
+import img from "../imgs/developed-with-youtube-sentence-case-light.png";
 
 const Sidebar = ({ onMenuSelect }) => {
     return (
-        <div className="w-48 bg-dedicatii-bg px-4 fixed top-14 left-0 h-full hidden md:block z-40">
-            <ul className="">
+        <div className="w-48 bg-dedicatii-bg px-4 fixed top-14 left-0 h-full hidden md:flex flex-col z-40">
+            <ul className="flex-grow">
                 <li className="mb-2">
                     <button 
                         className="text-white hover:text-dedicatii-button3 focus:outline-none font-inter"
@@ -56,7 +57,11 @@ const Sidebar = ({ onMenuSelect }) => {
                 <li className="mb-2 flex gap-2 md:hidden text-white">
                     <Logout />
                 </li>
+                <li className="mt-auto mb-4">
+                <img src={img} alt="Developed with YouTube" />
+            </li>
             </ul>
+           
         </div>
     );
 };
