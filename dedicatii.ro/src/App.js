@@ -7,6 +7,7 @@ import './index.css';
 import CharliePage from './pages/charliePage';
 import CharlieProfile from './pages/charlieProfile';
 import { SuggestPage } from './pages/suggestPage';
+import PrivacyPolicy from './pages/policy';
 
 function App() {
   return (
@@ -35,6 +36,10 @@ function App() {
             element={
               <ProtectedRoute element={CharlieProfile} requiredRole="charlie" />
             }
+          />
+        <Route
+            path="/privacy"
+            element={<PrivacyPolicy />} // Directly render the PrivacyPolicy component
           />
           <Route
             path="/suggest/*"

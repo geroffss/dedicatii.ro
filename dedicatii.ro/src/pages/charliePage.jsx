@@ -14,6 +14,7 @@ import { CategoriesView } from '../components/categoriesView';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SongCard } from '../components/songCard';
 import { toastStyle } from '../components/toastStyle';
+import image from '../imgs/developed-with-youtube-sentence-case-light.png';
 
 const API_KEY = 'AIzaSyA7Xj1W5mdDeAw2Aja47q6qa7zPPYZtT68';
 const DEFAULT_VIDEO_ID = 'C27NShgTQE';
@@ -253,7 +254,7 @@ const CharliePage = () => {
     <>
       <div
         className={`text-center bg-dedicatii-bg2 ${
-          !isCategoriesView && 'min-h-screen'
+          !isCategoriesView && 'min-h-full'
         }`}
       >
         <div className="fixed top-0 left-0 right-0 z-50">
@@ -285,14 +286,14 @@ const CharliePage = () => {
 
           <div className="possible-queue rounded-[5px] mb-10 w-full">
             {Object.keys(filteredQueue).length > 0 && (
-              <div className="possible-queue p-4 rounded-[5px] mb-10">
+              <div className="possible-queue p-4 rounded-[5px]">
                 {Object.keys(filteredQueue).map((category, catIndex) => (
-                  <div key={category + catIndex} className="mb-8 w-full">
+                  <div key={category + catIndex} className="mb-4 w-full">
                     <h2 className="text-xl font-bold mb-4 text-white">
                       {category}
                     </h2>
 
-                    <div className="overflow-x-auto scrollbar-hide pb-2 w-full">
+                    <div className="overflow-x-auto scrollbar-hide w-full">
                       <div className="flex gap-4 w-max">
                         {filteredQueue[category].map((video, index) =>
                           video ? (
@@ -316,9 +317,17 @@ const CharliePage = () => {
                   </div>
                 ))}
               </div>
+              
             )}
+             <img 
+            src={image}
+            alt="Charlie Image" 
+            className="-mt-10"
+          />
             {loading && <p className="text-white">Loading more songs...</p>}
+ 
           </div>
+         
         </motion.div>
 
         <Modal
@@ -350,7 +359,7 @@ const CharliePage = () => {
             </div>
           )}
         </Modal>
-
+          
         <BotBar
           videoDetails={currentQueue?.songs[0]}
           setIsCurrentSongVisible={setIsCurrentSongVisible}
