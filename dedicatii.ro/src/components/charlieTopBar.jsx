@@ -76,7 +76,7 @@ const CharlieTopBar = ({ handleCategoriesClick }) => {
 
   return (
     <div className="fixed w-full flex items-center bg-[#524C5D] p-2">
-      <div className="text-white block md:hidden">
+      <div className="text-white block  ">
         <button 
           onClick={toggleMenu} 
           aria-label="Toggle menu" 
@@ -98,7 +98,7 @@ const CharlieTopBar = ({ handleCategoriesClick }) => {
         <img src={logo} alt="Dedicații.ro logo" className="h-10" />
       </div>
       <div className="ml-auto text-white flex items-center gap-4">
-        <span className="text-sm md:text-base">{creditsCount} Credite</span>
+        <span className="text-base">{creditsCount} Credite</span>
         <button
           onClick={handleProfileClick}
           className="focus:outline-none focus:ring-2 focus:ring-white rounded-full p-0 overflow-hidden"
@@ -107,15 +107,8 @@ const CharlieTopBar = ({ handleCategoriesClick }) => {
           <img 
             src={avatarUrl} 
             alt={`${displayName}'s avatar`} 
-            className="w-8 h-8 md:w-10 md:h-10 rounded-full"
+            className="w-8 h-8  rounded-full"
           />
-        </button>
-        <button
-          onClick={handleLogout}
-          className="hidden md:flex focus:outline-none focus:ring-2 focus:ring-white rounded-full p-2"
-          aria-label="Sign out"
-        >
-          <FontAwesomeIcon icon={faSignOutAlt} className="text-lg md:text-xl" />
         </button>
       </div>
     </div>

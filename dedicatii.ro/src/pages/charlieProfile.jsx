@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getDatabase, ref, onValue, get, update } from 'firebase/database';
 import { getAuth, updateProfile } from 'firebase/auth';
 import { motion } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
 import CharlieTopBar from '../components/charlieTopBar';
 import { app } from '../firebaseconfig';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 export const toastStyle = {
   style: {
@@ -22,6 +24,7 @@ const CharlieProfile = () => {
   const [favoriteGenres, setFavoriteGenres] = useState([]);
   const [recentDedications, setRecentDedications] = useState([]);
   const { id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const auth = getAuth();
@@ -46,7 +49,6 @@ const CharlieProfile = () => {
           const profileData = snapshot.val();
           console.log('User profile data from DB:', profileData);
 
-          // Merge profile data from Firebase Auth and Realtime Database
           const mergedProfile = {
             displayName: user.displayName,
             email: user.email,
@@ -55,7 +57,6 @@ const CharlieProfile = () => {
 
           setUserProfile(mergedProfile);
 
-          // Generate avatar if not exists
           if (!mergedProfile.photoURL) {
             generateAvatar(mergedProfile.displayName, user.uid);
           }
@@ -128,20 +129,31 @@ const CharlieProfile = () => {
     exit: { opacity: 0 },
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="text-center bg-dedicatii-bg2 min-h-screen">
-              <CharlieTopBar />
-
-      <div className=" top-0 left-0 right-0 z-50">
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <CharlieTopBar />
       </div>
 
       <motion.div
         initial={animation.initial}
         animate={animation.animate}
         exit={animation.exit}
-        className="flex flex-col items-center p-4 pt-5"
+        className="flex flex-col items-center p-4 pt-16"
       >
-        <h1 className="text-3xl font-bold text-white mb-6 mt-12">Profilul meu</h1>
+        <button
+          onClick={handleBack}
+          className="absolute top-16 text-xl left-4 text-white hover:text-gray-300 transition-colors"
+          aria-label="Go back"
+        >
+          <FontAwesomeIcon icon={faArrowLeft} size="lg" />
+        </button>
+
+        <h1 className="text-xl font-bold text-white mb-6">Profilul meu</h1>
 
         {userProfile && (
           <div className="bg-white bg-opacity-10 rounded-lg p-6 w-full max-w-md">
@@ -153,27 +165,37 @@ const CharlieProfile = () => {
             <h2 className="text-xl font-semibold text-white mb-2">{userProfile.displayName}</h2>
             <p className="text-lg font-medium text-white mb-2">{credits} Credite</p>
 
-            <div className="mt-6">
-              <h3 className="text-lg font-medium text-white mb-2">Genuri preferate</h3>
-              <div className="flex flex-wrap justify-center gap-2">
-                {favoriteGenres.map((genre, index) => (
-                  <span key={index} className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm">
-                    {genre}
-                  </span>
-                ))}
+            {favoriteGenres.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-medium text-white mb-2">Genuri preferate</h3>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {favoriteGenres.map((genre, index) => (
+                    <span key={index} className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm">
+                      {genre}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="mt-6">
-              <h3 className="text-lg font-medium text-white mb-2">Dedicații recente</h3>
-              <ul className="text-left">
-                {recentDedications.map((dedication, index) => (
-                  <li key={index} className="text-gray-300 mb-2">
-                    {dedication.songTitle} - {dedication.artist}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {recentDedications.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-medium text-white mb-2">Dedicații recente</h3>
+                <ul className="text-left">
+                  {recentDedications.map((dedication, index) => (
+                    <li key={index} className="text-gray-300 mb-2">
+                      {dedication.songTitle} - {dedication.artist}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {favoriteGenres.length === 0 && recentDedications.length === 0 && (
+              <p className="text-gray-300 mt-6">
+                Nu ai încă genuri preferate sau dedicații recente. Începe să asculți și să dedici melodii pentru a-ți personaliza profilul!
+              </p>
+            )}
           </div>
         )}
       </motion.div>

@@ -251,106 +251,101 @@ const CharliePage = () => {
   };
 
   return (
-    <>
-      <div
-        className={`text-center bg-dedicatii-bg2 ${
-          !isCategoriesView && 'min-h-full'
+    <div className="flex flex-col min-h-screen bg-dedicatii-bg2 pb-12">
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <CharlieTopBar
+          handleCategoriesClick={() => setIsCategoriesView(true)}
+        />
+      </div>
+
+      <motion.div
+        {...animation}
+        className={`flex-grow flex flex-col items-center py-4 mt-12 px-4 ${
+          (isCurrentSongVisible || isCategoriesView) && 'hidden'
         }`}
       >
-        <div className="fixed top-0 left-0 right-0 z-50">
-          <CharlieTopBar
-            handleCategoriesClick={() => setIsCategoriesView(true)}
-          />
+        <div className="w-full max-w-md mb-4">
+          <div className="bg-white bg-opacity-10 rounded-2xl px-4 py-2 flex items-center">
+            <FontAwesomeIcon icon={faSearch} className="text-white mr-2" />
+            <input
+              className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none"
+              placeholder={!searchFocus ? 'Caută o melodie...' : ''}
+              type="text"
+              value={searchTerm}
+              onChange={handleSearch}
+              onFocus={() => setSearchFocus(true)}
+              onBlur={() => setSearchFocus(false)}
+            />
+          </div>
         </div>
 
-        <motion.div
-          {...animation}
-          className={`flex items-center flex-col py-4 mt-10 pt-5 ${
-            (isCurrentSongVisible || isCategoriesView) && 'hidden'
-          }`}
-        >
-          <div className="bg-t-bg-rectangle-14tvector-caut-omelodie z-0 flex items-center w-full bg-cover bg-center py-2 px-4 text-left justify-center">
-            <div className="z-2 flex items-center justify-center w-full bg-white bg-opacity-10 rounded-2xl px-4 py-2 mt-1">
-              <FontAwesomeIcon icon={faSearch} className="text-white" />
-              <input
-                className="font-inter text-center flex min-w-0 flex-grow text-xl placeholder:text-[#A4A4A4] bg-transparent outline-none text-white"
-                placeholder={!searchFocus && 'Caută o melodie...'}
-                type="text"
-                value={searchTerm}
-                onChange={handleSearch}
-                onFocus={() => setSearchFocus(true)}
-                onBlur={() => setSearchFocus(false)}
-              />
-            </div>
-          </div>
-
-          <div className="possible-queue rounded-[5px] mb-10 w-full">
-            {Object.keys(filteredQueue).length > 0 && (
-              <div className="possible-queue p-4 rounded-[5px]">
-                {Object.keys(filteredQueue).map((category, catIndex) => (
-                  <div key={category + catIndex} className="mb-4 w-full">
-                    <h2 className="text-xl font-bold mb-4 text-white">
-                      {category}
-                    </h2>
-
-                    <div className="overflow-x-auto scrollbar-hide w-full">
-                      <div className="flex gap-4 w-max">
-                        {filteredQueue[category].map((video, index) =>
-                          video ? (
-                            <div
-                              key={video.videoID}
-                              ref={
-                                index === filteredQueue[category].length - 1
-                                  ? lastSongElementRef
-                                  : null
-                              }
-                            >
-                              <SongCard
-                                song={video}
-                                onClick={() => openDedicateModal(video)}
-                              />
-                            </div>
-                          ) : null
-                        )}
-                      </div>
-                    </div>
+        <div className="w-full flex-grow overflow-y-auto">
+          {Object.keys(filteredQueue).length > 0 ? (
+            Object.keys(filteredQueue).map((category, catIndex) => (
+              <div key={category + catIndex} className="mb-6">
+                <h2 className="text-xl font-bold mb-3 text-white">{category}</h2>
+                <div className="overflow-x-auto pb-2">
+                  <div className="flex gap-4">
+                    {filteredQueue[category].map((video, index) =>
+                      video ? (
+                        <div
+                          key={video.videoID}
+                          ref={
+                            index === filteredQueue[category].length - 1
+                              ? lastSongElementRef
+                              : null
+                          }
+                        >
+                          <SongCard
+                            song={video}
+                            onClick={() => openDedicateModal(video)}
+                          />
+                        </div>
+                      ) : null
+                    )}
                   </div>
-                ))}
+                </div>
               </div>
-              
-            )}
-             <img 
-            src={image}
-            alt="Charlie Image" 
-            className="-mt-10"
-          />
-            {loading && <p className="text-white">Loading more songs...</p>}
- 
-          </div>
-         
-        </motion.div>
+            ))
+          ) : (
+            <div className="text-center text-white">
+              <p>Nu s-au găsit melodii. Încearcă să cauți altceva.</p>
+            </div>
+          )}
+          {loading && <p className="text-white text-center">Se încarcă mai multe melodii...</p>}
+        </div>
 
-        <Modal
-          isOpen={modalIsOpen}
-          onRequestClose={() => setModalIsOpen(false)}
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 w-full text-center -translate-y-1/2 bg-dedicatii-bg p-4 rounded shadow-lg max-w-md mx-auto z-40 text-white"
-          overlayClassName="fixed inset-0 bg-black bg-opacity-80 z-40"
-        >
+        <div className="mt-auto w-full flex justify-center items-center">
+          <img 
+            src={image}
+            alt="Developed with YouTube" 
+            className="max-w-full h-20"
+          />
+        </div>
+      </motion.div>
+
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setModalIsOpen(false)}
+        className="fixed inset-0 flex items-center justify-center z-50"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-80 z-40"
+      >
+        <div className="bg-dedicatii-bg p-6 rounded-lg shadow-lg max-w-sm w-full mx-4 text-white">
           {selectedVideo && (
             <div className="text-center">
-              <h2 className="text-2xl font-semibold mb-4">
+              <h2 className="text-xl font-semibold mb-4">
                 {selectedVideo.title}
               </h2>
-              <p>Acest video costă 1 credit.</p>
-              <div className="flex gap-4 justify-center">
+              <p className="mb-4">Acest video costă 1 credit.</p>
+              <div className="flex flex-col gap-2">
                 <button
-                  className="bg-dedicatii-button3 text-white py-2 px-4 rounded mt-4"
+                  className="bg-dedicatii-button3 text-white py-2 px-4 rounded"
                   onClick={() => addVideoToQueue(selectedVideo)}
                 >
                   Confirmă
                 </button>
                 <button
-                  className="bg-dedicatii-button1 text-white py-2 px-4 rounded mt-4"
+                  className="bg-dedicatii-button1 text-white py-2 px-4 rounded"
                   onClick={() => setModalIsOpen(false)}
                 >
                   Anulează
@@ -358,15 +353,15 @@ const CharliePage = () => {
               </div>
             </div>
           )}
-        </Modal>
+        </div>
+      </Modal>
           
-        <BotBar
-          videoDetails={currentQueue?.songs[0]}
-          setIsCurrentSongVisible={setIsCurrentSongVisible}
-        />
+      <BotBar
+        videoDetails={currentQueue?.songs[0]}
+        setIsCurrentSongVisible={setIsCurrentSongVisible}
+      />
 
-        <Toaster position="bottom-center" reverseOrder={false} />
-      </div>
+      <Toaster position="bottom-center" reverseOrder={false} />
 
       <AnimatePresence>
         {isCurrentSongVisible && <PlayingNow queue={currentQueue} />}
@@ -380,7 +375,7 @@ const CharliePage = () => {
           isCurrentSongVisible={isCurrentSongVisible}
         />
       )}
-    </>
+    </div>
   );
 };
 
