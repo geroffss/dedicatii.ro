@@ -41,7 +41,7 @@ const CharliePage = () => {
   const [hasMore, setHasMore] = useState(true);
   const uid = window.location.pathname.split('/')[2];
   const [scanResult, setScanResult] = useState(null);
-  const [qrError, setQrError] = useState('');
+  const [qrrError, setQrrError] = useState('');
   const [showQrReader, setShowQrReader] = useState(false);
 
 
@@ -54,16 +54,16 @@ const CharliePage = () => {
             if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
                 window.location.assign(parsedUrl.href);
             } else {
-                setQrError('Scanned data is not a valid URL.');
+                setQrrError('Scanned data is not a valid URL.');
             }
         } catch (error) {
-            setQrError('Scanned data is not a valid URL.');
+            setQrrError('Scanned data is not a valid URL.');
         }
     }
 };
 
 const handleError = (err) => {
-    setQrError('Error scanning QR code.');
+    setQrrError('Error scanning QR code.');
     console.error('QR Code scanning error:', err);
 };
   const observer = useRef();
