@@ -294,7 +294,7 @@ const handleError = (err) => {
         }`}
       >
       {Object.keys(filteredQueue).length > 0 && (
-        <div className="w-full max-w-md mb-4">         
+        <div className="w-full max-w-md mb-4e">         
            <div className="bg-white bg-opacity-10 rounded-2xl px-4 py-2 flex items-center">
             <FontAwesomeIcon icon={faSearch} className="text-white mr-2" />
             <input
