@@ -42,6 +42,9 @@ const CharliePage = () => {
   const uid = window.location.pathname.split('/')[2];
   const [scanResult, setScanResult] = useState(null);
   const [qrError, setQrError] = useState('');
+  const [showQrReader, setShowQrReader] = useState(false);
+
+
   const handleScan = (data) => {
     if (data) {
         setScanResult(data.text);
@@ -273,10 +276,12 @@ const handleError = (err) => {
     animate: { opacity: 1 },
     exit: { opacity: 0 },
   };
-
+  const handleShowQrReader = () => {
+    setShowQrReader(true);
+  };
   return (
     <div className="flex flex-col min-h-screen bg-dedicatii-bg2">
-      <div className="sticky top-0 left-0 right-0 z-50">
+      <div className="fixed top-0 left-0 right-0 z-50">
         <CharlieTopBar
           handleCategoriesClick={() => setIsCategoriesView(true)}
         />
@@ -334,30 +339,39 @@ const handleError = (err) => {
               </div>
             ))
           ) : (
-            <div className="text-center text-white mt-10">
-            <div className="bg-white bg-opacity-15 backdrop-filter backdrop-blur-lg p-6 rounded-2xl shadow-lg max-w-md mx-auto">
-              <h2 className="text-2xl font-bold mb-4">Nu s-au găsit melodii</h2>
-              <p className="mb-4">Nu s-au găsit melodii sau nu s-a scanat codul QR.</p>
-              <p className="mb-6">Vă rugăm să scanați codul QR pentru a accesa lista de redare a restaurantului.</p>
-              <div className="flex justify-center mb-4">
-              <QrReader
-                            delay={300}
-                            onError={handleError}
-                            onScan={handleScan}
-                            style={{ width: '100%' }}
-                            constraints={{
-                                video: { facingMode: 'environment' },
-                            }}
-                        />
-              </div>
-              {scanResult && (
-                <div className="mt-4">
-                  <p className="text-green-500">Cod QR scanat cu succes!</p>
-                  <p className="text-sm break-words">{scanResult}</p>
-                </div>
-              )}
-            </div>
+               <div className="text-center text-white mt-10">
+      <div className="bg-white bg-opacity-15 backdrop-filter backdrop-blur-lg p-6 rounded-2xl shadow-lg max-w-md mx-auto">
+        <h2 className="text-2xl font-bold mb-4">Nu s-au găsit melodii</h2>
+        <p className="mb-6">Vă rugăm să scanați codul QR pentru a accesa lista de redare a restaurantului.</p>
+        {!showQrReader && (
+          <button
+            onClick={handleShowQrReader}
+            className="bg-dedicatii-button3 text-white py-2 px-4 rounded-lg hover:bg-dedicatii-button3-dark"
+          >
+            Scanează codul QR
+          </button>
+        )}
+        {showQrReader && (
+          <div className="flex justify-center mb-4">
+            <QrReader
+              delay={300}
+              onError={handleError}
+              onScan={handleScan}
+              style={{ width: '100%' }}
+              constraints={{
+                video: { facingMode: 'environment' },
+              }}
+            />
           </div>
+        )}
+        {scanResult && (
+          <div className="mt-4">
+            <p className="text-green-500">Cod QR scanat cu succes!</p>
+            <p className="text-sm break-words">{scanResult}</p>
+          </div>
+        )}
+      </div>
+    </div>
           )}
           {loading && <p className="text-white text-center">Se încarcă mai multe melodii...</p>}
         </div>
