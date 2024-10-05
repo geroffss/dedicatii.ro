@@ -27,57 +27,57 @@ const Login = () => {
         }
     }, [location]);
 
-    const handleGoogleSignIn = async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const provider = new GoogleAuthProvider();
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-
-            console.log('User Info:', user);
-
-            const db = getFirestore();
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
-
-            if (!userDoc.exists()) {
-                await setDoc(userDocRef, {
-                    role: 'charlie',
-                    email: user.email,
-                });
-            }
-
-            const realtimeDb = getDatabase();
-            const userRef = ref(realtimeDb, `nova/${user.uid}`);
-            await set(userRef, {
-                email: user.email,
-                displayName: user.displayName,
-                lastLogin: new Date().toISOString()
-            });
-            console.log('User data successfully set in Realtime Database');
-
-            const redirectUrl = localStorage.getItem('redirectAfterLogin');
-            if (redirectUrl) {
-                localStorage.removeItem('redirectAfterLogin');
-                window.location.href = redirectUrl;
-            } else {
-                const userData = userDoc.exists() ? userDoc.data() : { role: 'charlie' };
-                if (userData.role === 'charlie') {
-                    navigate('/charlie');
-                } else if (userData.role === 'nova') {
-                    navigate('/main');
+                const handleGoogleSignIn = async () => {
+            setLoading(true);
+            setError(null);
+        
+            try {
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+        
+                console.log('User Info:', user);
+        
+                const db = getFirestore();
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDoc = await getDoc(userDocRef);
+        
+                if (!userDoc.exists()) {
+                    await setDoc(userDocRef, {
+                        role: 'charlie',
+                        email: user.email,
+                    });
                 }
+        
+                const realtimeDb = getDatabase();
+                const userRef = ref(realtimeDb, `nova/${user.uid}`);
+                await set(userRef, {
+                    email: user.email,
+                    displayName: user.displayName,
+                    lastLogin: new Date().toISOString()
+                });
+                console.log('User data successfully set in Realtime Database');
+        
+                const redirectUrl = localStorage.getItem('redirectAfterLogin');
+                if (redirectUrl) {
+                    localStorage.removeItem('redirectAfterLogin');
+                    window.location.href = redirectUrl;
+                } else {
+                    const userData = userDoc.exists() ? userDoc.data() : { role: 'charlie' };
+                    if (userData.role === 'charlie') {
+                        navigate('/charlie');
+                    } else if (userData.role === 'nova') {
+                        navigate('/main');
+                    }
+                }
+        
+            } catch (error) {
+                console.error('Error during sign-in:', error);
+                setError('Failed to sign in. Please try again.');
+            } finally {
+                setLoading(false);
             }
-
-        } catch (error) {
-            console.error('Error during sign-in:', error);
-            setError('Failed to sign in. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
 
     const steps = [
         "Conectează-te cu Google",
