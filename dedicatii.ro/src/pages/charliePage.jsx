@@ -289,12 +289,12 @@ const handleError = (err) => {
 
       <motion.div
         {...animation}
-        className={`flex-grow flex flex-col items-center py-4 px-4 ${
+        className={`flex-grow flex flex-col items-center py-4 px-4 mt-10 ${
           (isCurrentSongVisible || isCategoriesView) && 'hidden'
         }`}
       >
       {Object.keys(filteredQueue).length > 0 && (
-        <div className="w-full max-w-md mb-4 mt-10">         
+        <div className="w-full max-w-md mb-4">         
            <div className="bg-white bg-opacity-10 rounded-2xl px-4 py-2 flex items-center">
             <FontAwesomeIcon icon={faSearch} className="text-white mr-2" />
             <input
