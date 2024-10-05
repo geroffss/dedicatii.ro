@@ -81,9 +81,10 @@ const Login = () => {
 
     const steps = [
         "Conectează-te cu Google",
-        "Alege o melodie",
-        "Dedică melodia",
-        "Plătește cu credite",
+        "Plătește la restaurant și primește codul",
+        "Introdu codul pentru a revendica creditele",
+        "Caută melodia în aplicație",
+        "Dedică melodia folosind credite",
         "Ascultă melodia dedicată"
     ];
 
@@ -129,7 +130,7 @@ const Login = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.7 }}
                 >
-                    <h3 className="text-2xl font-bold mb-4 text-center text-white">Cum funcționează</h3>
+                    <h3 className="text-2xl font-bold mb-4 text-center text-white ">Cum funcționează</h3>
                     <ol className="list-decimal list-inside space-y-2">
                         {steps.map((step, index) => (
                             <motion.li 

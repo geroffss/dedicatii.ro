@@ -15,6 +15,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { SongCard } from '../components/songCard';
 import { toastStyle } from '../components/toastStyle';
 import image from '../imgs/developed-with-youtube-sentence-case-light.png';
+import QrReader from 'react-qr-scanner';
+
 
 const API_KEY = 'AIzaSyA7Xj1W5mdDeAw2Aja47q6qa7zPPYZtT68';
 const DEFAULT_VIDEO_ID = 'C27NShgTQE';
@@ -38,7 +40,29 @@ const CharliePage = () => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const uid = window.location.pathname.split('/')[2];
+  const [scanResult, setScanResult] = useState(null);
+  const [qrError, setQrError] = useState('');
+  const handleScan = (data) => {
+    if (data) {
+        setScanResult(data.text);
 
+        try {
+            const parsedUrl = new URL(data.text);
+            if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+                window.location.assign(parsedUrl.href);
+            } else {
+                setQrError('Scanned data is not a valid URL.');
+            }
+        } catch (error) {
+            setQrError('Scanned data is not a valid URL.');
+        }
+    }
+};
+
+const handleError = (err) => {
+    setQrError('Error scanning QR code.');
+    console.error('QR Code scanning error:', err);
+};
   const observer = useRef();
   const lastSongElementRef = useCallback(
     (node) => {
@@ -264,8 +288,9 @@ const CharliePage = () => {
           (isCurrentSongVisible || isCategoriesView) && 'hidden'
         }`}
       >
-        <div className="w-full max-w-md mb-4 mt-10">
-          <div className="bg-white bg-opacity-10 rounded-2xl px-4 py-2 flex items-center">
+      {Object.keys(filteredQueue).length > 0 && (
+        <div className="w-full max-w-md mb-4 mt-10">         
+           <div className="bg-white bg-opacity-10 rounded-2xl px-4 py-2 flex items-center">
             <FontAwesomeIcon icon={faSearch} className="text-white mr-2" />
             <input
               className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none"
@@ -278,6 +303,7 @@ const CharliePage = () => {
             />
           </div>
         </div>
+        )}
 
         <div className="w-full flex-grow overflow-y-auto">
           {Object.keys(filteredQueue).length > 0 ? (
@@ -308,15 +334,36 @@ const CharliePage = () => {
               </div>
             ))
           ) : (
-            <div className="text-center text-white">
-              <p>Nu s-au găsit melodii. Încearcă să cauți altceva.</p>
+            <div className="text-center text-white mt-10">
+            <div className="bg-white bg-opacity-15 backdrop-filter backdrop-blur-lg p-6 rounded-2xl shadow-lg max-w-md mx-auto">
+              <h2 className="text-2xl font-bold mb-4">Nu s-au găsit melodii</h2>
+              <p className="mb-4">Nu s-au găsit melodii sau nu s-a scanat codul QR.</p>
+              <p className="mb-6">Vă rugăm să scanați codul QR pentru a accesa lista de redare a restaurantului.</p>
+              <div className="flex justify-center mb-4">
+              <QrReader
+                            delay={300}
+                            onError={handleError}
+                            onScan={handleScan}
+                            style={{ width: '100%' }}
+                            constraints={{
+                                video: { facingMode: 'environment' },
+                            }}
+                        />
+              </div>
+              {scanResult && (
+                <div className="mt-4">
+                  <p className="text-green-500">Cod QR scanat cu succes!</p>
+                  <p className="text-sm break-words">{scanResult}</p>
+                </div>
+              )}
             </div>
+          </div>
           )}
           {loading && <p className="text-white text-center">Se încarcă mai multe melodii...</p>}
         </div>
 
-        <div className="w-full flex justify-center items-center">
-          <img 
+        <div className={`w-full flex justify-center items-center ${Object.keys(filteredQueue).length > 0 ? 'pb-12' : 'pb-0'}`}>  
+            <img 
             src={image}
             alt="Developed with YouTube" 
             className="max-w-full h-20"

@@ -3,11 +3,7 @@ import { auth } from '../firebaseconfig'; // Adjust the path as necessary
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { getDatabase, ref, set } from "firebase/database";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import '../pages/login.css'; // Adjust the path as necessary
-import LoginBotBar from './loginBotBar';
-import img from '../imgs/developed-with-youtube-sentence-case-light.png'; // Adjust the path as necessary
 
 const HamburgerMenuLogin = ({ isOpen, toggleMenu, handleCategoriesClick }) => {
     const [loading, setLoading] = useState(false);
@@ -116,7 +112,6 @@ const HamburgerMenuLogin = ({ isOpen, toggleMenu, handleCategoriesClick }) => {
                     </button>
 
                     <div className="flex-grow"></div> {/* Spacer to push LoginBotBar to the bottom */}
-                    <LoginBotBar />
                 </div>
             </div>
         )

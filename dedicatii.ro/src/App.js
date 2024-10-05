@@ -8,6 +8,7 @@ import CharliePage from './pages/charliePage';
 import CharlieProfile from './pages/charlieProfile';
 import { SuggestPage } from './pages/suggestPage';
 import PrivacyPolicy from './pages/policy';
+import TermsAndConds from './pages/termsandconds'
 
 function App() {
   return (
@@ -38,8 +39,12 @@ function App() {
             }
           />
         <Route
-            path="/privacy"
-            element={<PrivacyPolicy />} // Directly render the PrivacyPolicy component
+            path="/confidentialitate"
+            element={<PrivacyPolicy />}
+          />
+          <Route
+            path="/termenisiconditii"
+            element={<TermsAndConds />}
           />
           <Route
             path="/suggest/*"
