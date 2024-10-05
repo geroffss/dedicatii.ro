@@ -35,37 +35,7 @@ Dedicatii.ro is a web application that allows users to dedicate songs to others.
 
 ## Project Structure 
 
-dedicatii.ro/
-├── public/
-│   ├── index.html
-│   └── ...
-├── src/
-│   ├── components/
-│   │   ├── loginBotBar.jsx
-│   │   ├── loginTopBar.jsx
-│   │   ├── logout.jsx
-│   │   ├── ProtectedRoute.jsx
-│   │   ├── sidebar.jsx
-│   │   └── ...
-│   ├── pages/
-│   │   ├── charliePage.jsx
-│   │   ├── charlieProfile.jsx
-│   │   ├── login.jsx
-│   │   ├── main.jsx
-│   │   ├── policy.jsx
-│   │   ├── privacyPolicy.jsx
-│   │   ├── suggestPage.jsx
-│   │   └── ...
-│   ├── App.js
-│   ├── index.js
-│   ├── logo1.svg
-│   ├── index.css
-│   └── ...
-├── .env
-├── .gitignore
-├── package.json
-├── README.md
-└── ...
+-- -- -- -- 
 
 ## Contributing 
 
