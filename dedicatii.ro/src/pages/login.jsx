@@ -94,7 +94,7 @@ const Login = () => {
             <div className="flex-grow flex flex-col items-center justify-center px-4 py-8 mt-10">
                 <div className="bg-white bg-opacity-15 backdrop-filter backdrop-blur-lg p-6 rounded-2xl shadow-lg w-full max-w-sm">
                     <img className="w-24 h-24 mx-auto" src={logo} alt="Dedicații.ro logo" />
-                    <h1 className="text-4xl font-bold mb-2 text-center text-white">Dedicații.ro</h1>
+                    <h1 className="text-4xl font-bold mb-2 text-center text-white">Dedică.ro</h1>
                     <h2 className="text-xl font-semibold mb-6 text-center text-gray-200">Piesa ta în boxa mea</h2>
                     {error && <p className="text-red-500 text-center mb-4">{error}</p>}
                     <div className="flex flex-col items-center">

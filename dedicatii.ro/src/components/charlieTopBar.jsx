@@ -94,7 +94,7 @@ const CharlieTopBar = ({ handleCategoriesClick }) => {
           selectedMenu
         />
       </div>
-      <div className="absolute left-1/2 transform -translate-x-1/2">
+      <div className="fixed left-1/2 transform -translate-x-1/2">
         <img src={logo} alt="Dedicații.ro logo" className="h-10" />
       </div>
       <div className="ml-auto text-white flex items-center gap-4">

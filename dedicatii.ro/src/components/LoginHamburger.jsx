@@ -11,7 +11,6 @@ const HamburgerMenuLogin = ({ isOpen, toggleMenu, handleCategoriesClick }) => {
 
     const provider = new GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/youtube.readonly');
-    provider.addScope('https://www.googleapis.com/auth/youtube.force-ssl');
 
     const handleGoogleSignIn = async () => {
         setLoading(true);

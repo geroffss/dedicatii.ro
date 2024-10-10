@@ -48,7 +48,7 @@ const CharlieTopBar = ({ selectedMenu, onMenuSelect }) => {
         />
       </div>
       <div className="text-xl text-white ml-2 md:ml-0 hidden md:block font-inter font-bold">
-        Dedicatii.ro
+        Dedică.ro
       </div>
       <div className="ml-auto text-white flex items-center gap-5">
         <FontAwesomeIcon icon={faUser} />
