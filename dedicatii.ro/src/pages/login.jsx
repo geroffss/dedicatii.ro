@@ -81,11 +81,10 @@ const Login = () => {
 
     const steps = [
         "Conectează-te cu Google",
-        "Plătește la restaurant și primește codul",
+        "Cere un cod",
         "Introdu codul pentru a revendica creditele",
         "Caută melodia în aplicație",
         "Dedică melodia folosind credite",
-        "Ascultă melodia dedicată"
     ];
 
     return (

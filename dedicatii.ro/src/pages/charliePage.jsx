@@ -342,7 +342,7 @@ const handleError = (err) => {
                <div className="text-center text-white mt-10">
       <div className="bg-white bg-opacity-15 backdrop-filter backdrop-blur-lg p-6 rounded-2xl shadow-lg max-w-md mx-auto">
         <h2 className="text-2xl font-bold mb-4">Nu s-au găsit melodii</h2>
-        <p className="mb-6">Vă rugăm să scanați codul QR pentru a accesa lista de redare a restaurantului.</p>
+        <p className="mb-6">Vă rugăm să scanați codul QR pentru a accesa lista de redare.</p>
         {!showQrReader && (
           <button
             onClick={handleShowQrReader}
